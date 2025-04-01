@@ -13,21 +13,21 @@
 
 unsigned long millis();
 
-enum Direction {
-  Up = 0,
-  Down = 1,
-};
+enum Direction { Up, Down };
 
 struct PlayerMoveData : public Packet {
   Direction dir;
   PlayerID id;
   unsigned long time;
+
   PlayerMoveData(Direction dir, PlayerID id, unsigned long time) {
     this->dir = dir;
     this->id = id;
     this->time = time;
   }
-  PacketType packet_type() override { return PacketType::PlayerMove; }
+  PacketType packet_type() override {
+    return PacketType::PlayerMove;
+  }
 };
 
 class PongButton : public Button {
@@ -35,30 +35,22 @@ public:
   Direction direction;
   PongButton(PlayerID id, Direction dir) {
     this->direction = dir;
-    switch (id) {
-    case One: {
-      switch (dir) {
-      case Up:
-        this->setPin(P1_PONG_BUTTON_UP, INPUT);
-        break;
-      case Down:
-        this->setPin(P1_PONG_BUTTON_DOWN, INPUT);
-        break;
+    this->setPin(PongButton::getPin(id, dir), INPUT);
+  }
+
+private:
+  static int getPin(PlayerID id, Direction dir) {
+    static int pinArr[2][2] {
+      {
+        P1_PONG_BUTTON_UP,
+        P1_PONG_BUTTON_DOWN,
+      }, {
+        P2_PONG_BUTTON_UP,
+        P2_PONG_BUTTON_DOWN
       }
-      break;
-    }
-    case Two: {
-      switch (dir) {
-      case Up:
-        this->setPin(P2_PONG_BUTTON_UP, INPUT);
-        break;
-      case Down:
-        this->setPin(P2_PONG_BUTTON_DOWN, INPUT);
-        break;
-      }
-      break;
-    }
-    }
+    };
+
+    return pinArr[id][dir];
   }
 };
 
@@ -66,6 +58,7 @@ class PlayerInput {
 public:
   PongButton up;
   PongButton down;
+
   PlayerInput(PlayerID id) : up(id, Direction::Up), down(id, Direction::Down) {}
 };
 
@@ -76,6 +69,7 @@ class Player {
 
 public:
   Player(PlayerID id) : id(id), input(id), state(id) {}
+
   void send_input() {
     if (input.up.checkPress()) {
       PlayerMoveData(Direction::Up, this->id, millis()).send_packet();
