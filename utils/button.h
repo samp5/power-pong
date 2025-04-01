@@ -1,8 +1,10 @@
-#include <Arduino.h>
+#ifndef BUTTON_H
+#define BUTTON_H
+#include "Common.h"
 /**
  * Button struct which handles debounce.
  */
-struct Button {
+class Button {
 private:
   static const unsigned long debounceDelay = 50;
 
@@ -19,6 +21,12 @@ public:
   Button(int pin) {
     this->pin = pin;
     pinMode(this->pin, INPUT);
+  }
+  Button() {}
+
+  void setPin(int pin, PinMode mode) {
+    this->pin = pin;
+    pinMode(pin, mode);
   }
 
   /**
@@ -45,3 +53,4 @@ public:
     return press;
   }
 };
+#endif // !BUTTON_H
