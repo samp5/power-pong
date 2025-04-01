@@ -25,7 +25,9 @@ struct PlayerMoveData : public Packet {
     this->id = id;
     this->time = time;
   }
-  PacketType packet_type() override { return PacketType::PlayerMove; }
+  PacketType packet_type() override {
+    return PacketType::PlayerMove;
+  }
 };
 
 class PongButton : public Button {
@@ -33,6 +35,7 @@ public:
   Direction direction;
   PongButton(PlayerID id, Direction dir) : Button(PongButton::getPin(id, dir)) {
     this->direction = dir;
+    this->setPin(PongButton::getPin(id, dir), INPUT);
   }
 
 private:
@@ -66,6 +69,14 @@ class Player {
 
 public:
   Player(PlayerID id) : id(id), input(id), state(id) {}
+
+  void send_input() {
+    if (input.up.checkPress()) {
+      PlayerMoveData(Direction::Up, this->id, millis()).send_packet();
+    } else if (input.down.checkPress()) {
+      PlayerMoveData(Direction::Down, this->id, millis()).send_packet();
+    }
+  }
 };
 
 #endif // !PLAYER_H
