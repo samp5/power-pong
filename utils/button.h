@@ -1,6 +1,7 @@
 #ifndef BUTTON_H
 #define BUTTON_H
 #include "Common.h"
+
 /**
  * Button struct which handles debounce.
  */
@@ -22,7 +23,6 @@ public:
     this->pin = pin;
     pinMode(this->pin, INPUT);
   }
-  Button() {}
 
   void setPin(int pin, PinMode mode) {
     this->pin = pin;
@@ -53,4 +53,5 @@ public:
     return press;
   }
 };
+
 #endif // !BUTTON_H

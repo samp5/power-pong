@@ -1,16 +1,9 @@
+#include "utils/PowerUps.h"
 #include <WiFi.h>
 
 // -----------------------
 //       TYPE DEFS
 // -----------------------
-typedef enum Powerup {
-  Joystick,
-  Distance,
-  Photoresistor,
-  Numbers,
-  Motor,
-};
-
 typedef struct {
   bool cdExpired;
   int lastInvoked;
@@ -29,6 +22,7 @@ byte LED_PINS[5] = {
 
 // runtime variables
 PowerupStatus powerupStatus[5];
+int updatedCDStatus;
 
 
 
@@ -36,21 +30,32 @@ PowerupStatus powerupStatus[5];
 //       CD FUNCS
 // -----------------------
 void invokeCD() {
-
+  // if a packet is recieved from server, set that powerup's cd
 }
 
 void updateCooldowns() {
-  bool status;
   // check each powerups cooldown
   for (int i = 0; i < 5; ++i) {
     int cd = powerupStatus[i].cd;
     int lastInvoked = powerupStatus[i].lastInvoked;
 
     // set cooldown expired status
-    status = powerupStatus[i].cdExpired = millis() >= (lastInvoked + cd);
+    int cdStatus = millis() >= (lastInvoked + cd);
+    if (cdStatus) {
+      updatedCDStatus | (1 << i);
+    }
 
-    // set the LED to light based on status
-    digitalWrite(LED_PINS[i], status);
+    // set the LED and struct to light based on status
+    powerupStatus[i].cdExpired = cdStatus;
+    digitalWrite(LED_PINS[i], powerupStatus[i].cdExpired);
+  }
+
+  if (updatedCDStatus) {
+    PowerupPacket packet;
+    packet.cooldownsExpired = updatedCDStatus;
+    // send packet to server
+
+    updatedCDStatus = 0;
   }
 }
 
@@ -70,24 +75,24 @@ void setup() {
 
     // then set up its cooldown duration.
     // exists in a switch case to allow for individual cd tweaking.
-    switch ((Powerup) i) {
-      case Joystick:
+    switch ((PowerUps) i) {
+      case BallSpeedUp:
         powerupStatus[i].cd = 5000;
         break;
 
-      case Distance:
+      case BallInvisible:
         powerupStatus[i].cd = 5000;
         break;
 
-      case Photoresistor:
+      case PaddleSpeedUp:
         powerupStatus[i].cd = 5000;
         break;
 
-      case Numbers:
+      case BallSize:
         powerupStatus[i].cd = 5000;
         break;
 
-      case Motor:
+      case BonusPoints:
         powerupStatus[i].cd = 5000;
         break;
     }
@@ -95,6 +100,8 @@ void setup() {
     // set the last invoked to negative cooldown, to allow cooldown expired
     powerupStatus[i].lastInvoked = -powerupStatus[i].cd;
   }
+
+  updatedCDStatus = 0;
 }
 
 void loop() {

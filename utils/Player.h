@@ -33,9 +33,8 @@ struct PlayerMoveData : public Packet {
 class PongButton : public Button {
 public:
   Direction direction;
-  PongButton(PlayerID id, Direction dir) {
+  PongButton(PlayerID id, Direction dir) : Button(PongButton::getPin(id, dir)) {
     this->direction = dir;
-    this->setPin(PongButton::getPin(id, dir), INPUT);
   }
 
 private:
@@ -46,7 +45,7 @@ private:
         P1_PONG_BUTTON_DOWN,
       }, {
         P2_PONG_BUTTON_UP,
-        P2_PONG_BUTTON_DOWN
+        P2_PONG_BUTTON_DOWN,
       }
     };
 
