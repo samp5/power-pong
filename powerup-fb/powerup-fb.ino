@@ -1,5 +1,7 @@
 #include "utils/PowerUps.h"
 #include <WiFi.h>
+#include "utils/Client.h"
+#include "utils/Server.h"
 
 // -----------------------
 //       TYPE DEFS
@@ -21,6 +23,7 @@ byte LED_PINS[5] = {
 };
 
 // runtime variables
+ClientConnection client;
 PowerupStatus powerupStatus[5];
 int updatedCDStatus;
 
@@ -51,9 +54,10 @@ void updateCooldowns() {
   }
 
   if (updatedCDStatus) {
-    PowerupPacket packet;
-    packet.cooldownsExpired = updatedCDStatus;
-    // send packet to server
+    CooldownsExpiredData data;
+    data.cooldownsExpired = updatedCDStatus;
+    Packet p = Packet(PowerupCDPacket).withData(&data).sendable();
+    client.sendPacket(&p);
 
     updatedCDStatus = 0;
   }
@@ -102,6 +106,12 @@ void setup() {
   }
 
   updatedCDStatus = 0;
+
+  // connect to server
+  IPAddress ip {
+    // populate
+  };
+  client = ClientConnection(ip);
 }
 
 void loop() {

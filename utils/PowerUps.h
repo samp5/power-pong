@@ -32,24 +32,49 @@ enum PowerUps {
   BonusPoints   = 8, // Num Pad
 };
 
-/**
- * Packet that is send from the Powerup Feedback.
- * 
- * `cooldownsExpired` is an int with each bit corresponding to each powerup.
- * if that powerup's bit is 1, the powerup is now available. if it is 0, ignore.
- *
- * Example: BallSize's cooldown expired
- *
- * cooldownsExpired = 0b01000;
- *
- * this means that just this cooldown expired. it does not mean that others are
- * not available.
- */
-struct PowerupPacket : Packet {
+struct CooldownsExpiredData : PacketData {
   int cooldownsExpired;
-  PacketType packet_type() override {
-    return PacketType::PowerupCDPacket;
-  }
 };
+
+// /**
+//  * Packet that is sent from the Powerup Feedback.
+//  * 
+//  * `cooldownsExpired` is an int with each bit corresponding to each powerup.
+//  * if that powerup's bit is 1, the powerup is now available. if it is 0, ignore.
+//  *
+//  * Example: BallSize's cooldown expired
+//  *
+//  * cooldownsExpired = 0b01000;
+//  *
+//  * this means that just this cooldown expired. it does not mean that others are
+//  * not available.
+//  */
+// struct PowerupCooldownPacket : Packet {
+//   int cooldownsExpired;
+//   PacketType packet_type() override {
+//     return PacketType::PowerupCDPacket;
+//   }
+// };
+//
+// /**
+//  * Packet that is send from the Powerup Feedback.
+//  * 
+//  * `powerupsActivated` is an int with each bit corresponding to each powerup.
+//  * if that powerup's bit is 1, the powerup has been activated. if it is 0, 
+//  * ignore.
+//  *
+//  * Example: Activate BallSize's
+//  *
+//  * cooldownsExpired = 0b01000;
+//  *
+//  * this means that just this powerup was activated. it does not mean that others
+//  * are not available.
+//  */
+// struct PowerupActivatePacket : Packet {
+//   int powerupsActivated;
+//   PacketType packet_type() override {
+//     return PacketType::PowerupActivatePacket;
+//   }
+// };
 
 #endif // !POWER_UPS_H
