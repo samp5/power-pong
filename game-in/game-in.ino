@@ -1,4 +1,3 @@
-#include "utils/Player.h"
 #include "utils/GameState.h"
 
 #include <Adafruit_GFX.h>
@@ -9,8 +8,8 @@
 // Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
 #define OLED_RESET -1  // Reset pin # (or -1 if sharing Arduino reset pin)
 
-GameState STATE;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+GameState STATE({ SCREEN_WIDTH, SCREEN_HEIGHT });
 
 
 void drawStartScreen(String intro) {
@@ -62,9 +61,9 @@ void initState() {
   STATE.powerUpStat = 0;
 }
 
-void drawPaddle(Position p) {
+void drawPaddle(const Paddle& p) {
   // TODO:
-  display.drawRoundRect(p.x, p.y, 10, 10, 5, WHITE);
+  display.drawRoundRect(p.paddlePosition.x, p.paddlePosition.y, p.halfheight * 2, p.halfwidth * 2, 2, WHITE);
 }
 
 void drawBall(Position p) {
@@ -81,8 +80,8 @@ void drawPowerUpUpdates(PowerUpStatus newStatus) {
 
 void updateDisplay() {
   display.clearDisplay();
-  drawPaddle(STATE.player1.paddlePosition);
-  drawPaddle(STATE.player2.paddlePosition);
+  drawPaddle(STATE.player1.getPaddle());
+  drawPaddle(STATE.player2.getPaddle());
   drawBall(STATE.ball.postion);
   drawScoreBoard(STATE.player1.score, STATE.player2.score);
   drawPowerUpUpdates(STATE.powerUpStat);
@@ -91,6 +90,6 @@ void updateDisplay() {
 
 
 void loop() {
+  STATE.update(millis());
   updateDisplay();
-  STATE.ball.update();
 }
