@@ -36,6 +36,15 @@ void invokeCD() {
   // if a packet is recieved from server, set that powerup's cd
 }
 
+void sendCDPacket() {
+  if (!client.isConnected()) return;
+
+  CooldownsExpiredData data;
+  data.cooldownsExpired = updatedCDStatus;
+  Packet p = Packet(PowerupCDPacket).withData(&data).sendable();
+  client.sendPacket(&p);
+}
+
 void updateCooldowns() {
   // check each powerups cooldown
   for (int i = 0; i < 5; ++i) {
@@ -54,11 +63,7 @@ void updateCooldowns() {
   }
 
   if (updatedCDStatus) {
-    CooldownsExpiredData data;
-    data.cooldownsExpired = updatedCDStatus;
-    Packet p = Packet(PowerupCDPacket).withData(&data).sendable();
-    client.sendPacket(&p);
-
+    sendCDPacket();
     updatedCDStatus = 0;
   }
 }
@@ -108,10 +113,7 @@ void setup() {
   updatedCDStatus = 0;
 
   // connect to server
-  IPAddress ip {
-    // populate
-  };
-  client = ClientConnection(ip);
+  client = ClientConnection(getIPSerial());
 }
 
 void loop() {
