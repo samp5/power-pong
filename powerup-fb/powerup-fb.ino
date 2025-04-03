@@ -35,7 +35,7 @@ int updatedCDStatus;
 void invokeCD() {
   // get all packets recieved
   Packet** packetsRecieved;
-  int packets = client.readPackets(packets);
+  int packets = client.readPackets(packetsRecieved);
 
   // for each packet recieved
   for (int i = 0; i < packets; ++i) {
@@ -46,7 +46,7 @@ void invokeCD() {
     if (packet->getType() == PowerupActivatePacket) {
       // parse the packet appropriately
       CooldownsTriggeredData triggered;
-      packet.toStruct(&triggered);
+      packet->toStruct(&triggered);
 
       // for each powerup
       for (int i = 0; i < 5; ++i) {
