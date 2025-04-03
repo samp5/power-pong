@@ -32,6 +32,10 @@ public:
     this->type = type;
   }
 
+  PacketType getType() {
+    return this->type;
+  }
+
   /**
    * part of the packet factory.
    * sets the `data` of the packet, along with the size.

@@ -33,7 +33,30 @@ int updatedCDStatus;
 //       CD FUNCS
 // -----------------------
 void invokeCD() {
-  // if a packet is recieved from server, set that powerup's cd
+  // get all packets recieved
+  Packet** packetsRecieved;
+  int packets = client.readPackets(packets);
+
+  // for each packet recieved
+  for (int i = 0; i < packets; ++i) {
+    // take the packet
+    Packet* packet = packetsRecieved[i];
+
+    // only process powerup activation packets
+    if (packet->getType() == PowerupActivatePacket) {
+      // parse the packet appropriately
+      CooldownsTriggeredData triggered;
+      packet.toStruct(&triggered);
+
+      // for each powerup
+      for (int i = 0; i < 5; ++i) {
+        // if the triggered but was set, set invoked to now
+        if (triggered.packetsTriggered >> i) {
+          powerupStatus[i].lastInvoked = millis();
+        }
+      }
+    }
+  }
 }
 
 void sendCDPacket() {
