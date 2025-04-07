@@ -125,16 +125,16 @@ void loop() {
     updateDisplay();
   }
 
-  WiFiClient client = server.clients[0];
-  if (client && client.connected() && client.available()) {
-    client.println("I could be sending you a packet right now");
-    // Serial.println("Building packet");
-    // CooldownsTriggeredData d;
-    // d.packetsTriggered = 1;
-    // Packet p = Packet(PowerupActivatePacket).withData(&d).sendable();
-    // Serial.println("Sending packet");
-    // server.sendPacket(,&p);
-    // Serial.println("Packet sent");
-    // client.stop();
-  }
+  // WiFiClient client = server.clients[0];
+  // if (client && client.connected() && client.available()) {
+  //   client.println("I could be sending you a packet right now");
+  //   // Serial.println("Building packet");
+  //   // CooldownsTriggeredData d;
+  //   // d.packetsTriggered = 1;
+  //   // Packet p = Packet(PowerupActivatePacket).withData(&d).sendable();
+  //   // Serial.println("Sending packet");
+  //   // server.sendPacket(,&p);
+  //   // Serial.println("Packet sent");
+  //   // client.stop();
+  // }
 }

@@ -14,24 +14,37 @@ public:
    * Don't invoke this. this exists purely for arrays or declarations.
    */
   ClientConnection() {}
+
   /**
    * create a new client connection connected to the given ip address
    */
-  ClientConnection(IPAddress ipaddr) {
+  ClientConnection(ClientID clientID, IPAddress ipaddr) {
+    // connect to Wifi, with retries
     Serial.println("Connecting to WiFi...");
     int status = WiFi.begin(SSID, PWD);
     while (status != WL_CONNECTED) {
       Serial.println("Unable to connect to wifi, trying again...");
-      delay(10000); // wait 10s before trying again
+      delay(3000); // wait 3s before trying again
       status = WiFi.begin(SSID, PWD);
     }
 
+    // connect to server, with retries
     Serial.println("Connecting to server...");
     while (!this->client.connect(ipaddr, PORT)) {
       Serial.println("Unable to connect to server, trying again...");
     }
 
+    // feedback of connection
+    ConnectionPacket idPacket(clientID);
+    sendPacket(&idPacket);
     Serial.println("Connected to server");
+  }
+
+  /**
+   * create a new client connection object using an existing WiFi client
+   */
+  ClientConnection(WiFiClient client) {
+    this->client = client;
   }
 
   /**
@@ -84,7 +97,7 @@ public:
 
   bool isConnected() { return client.connected(); }
 
-// private:
+private:
   WiFiClient client;
   Packet incomingPackets[MAX_INCOMING_PACKETS];
 };

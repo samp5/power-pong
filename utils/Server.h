@@ -1,6 +1,6 @@
 #ifndef SERVER
 #define SERVER
-#define NUM_CLIENTS 1
+#define NUM_CLIENTS 3
 #include "Client.h"
 #include "Network.h"
 #include "Packet.h"
@@ -11,54 +11,96 @@ public:
   WifiServer() : server(PORT) {}
 
   void initialize() {
+    // connect to Wifi, with retries
+    Serial.println("Connecting to WiFi...");
     int status = WiFi.begin(SSID, PWD);
-    if (status != WL_CONNECTED) {
-      Serial.println("Not connected :(");
-      return;
-    } else {
-      server.begin();
-      this->ipAddr = WiFi.localIP();
+    while (status != WL_CONNECTED) {
+      Serial.println("Unable to connect to wifi, trying again...");
+      delay(3000); // wait 3s before trying again
+      status = WiFi.begin(SSID, PWD);
+    }
 
-      Serial.println("Connecting clients");
-      int connectedClients = 0;
-      while (connectedClients < NUM_CLIENTS) {
-        WiFiClient thisClient = server.available();
-        if (thisClient) {
-          while (thisClient.connected()) {
-            if (thisClient.available()) {
-              Serial.println("WifiServer::initialize client was available");
-              char c = thisClient.read();
-              Serial.print("\tgot: ");
-              Serial.println((int)c);
-              this->clients[c] = thisClient;
-              connectedClients++;
-              break;
+    // start the server, get the ip
+    server.begin();
+    this->ipAddr = WiFi.localIP();
+
+    // notify server status
+    Serial.print("Waiting for clients on host ");
+    Serial.print(this->ipAddr);
+    Serial.print(":");
+    Serial.println(PORT);
+
+    // wait for clients to connect
+    this->connectedClients = 0;
+    getClients();
+  }
+
+  /**
+   * connect to all clients
+   */
+  void getClients() {
+    while (this->connectedClients != wantedClients) {
+      WiFiClient client = server.available();
+      if (client) {
+        while (client.connected()) {
+          if (client.available()) {
+            ClientID c = (ClientID) client.read();
+            
+            switch (c) {
+              case GAME_IN:
+                Serial.println("Connected to Game Input");
+                break;
+              case POWERUP_IN:
+                Serial.println("Connected to Powerup Input");
+                break;
+              case POWERUP_FB:
+                Serial.println("Connected to Powerup Feedback");
+                break;
             }
+
+            connectedClients |= 1 << c;
+            this->clients[c] = ClientConnection(client);
+            break;
           }
         }
       }
     }
   }
 
-  const IPAddress &getIP() { return this->ipAddr; }
   /**
-   * send the given packet to all clients
+   * get the IP of the server
    */
-  // void sendPacket(ClientID id, Packet *p) { this->listener.sendPacket(p); }
+  const IPAddress &getIP() { return this->ipAddr; }
+
+  /**
+   * send the given packet to the specified client
+   */
+  void sendPacket(ClientID id, Packet *p) {
+    this->clients[id].sendPacket(p);
+  }
 
   /**
    * @param packetsRecieved a packet double pointer which will be given an array
-   *   of packets recieved. will contain a maximum of 16 packets
+   *   of packets recieved. will contain a maximum of 48 packets
    * @return the number of packets recieved.
    */
-  // int readPackets(Packet **packetsRecieved) {
-  //   return this->listener.readPackets(packetsRecieved);
-  // }
+  int readPackets(Packet **packetsRecieved) {
+    int numPackets = 0;
+    for (int i = 0; i < NUM_CLIENTS; ++i) {
+      numPackets += clients[i].readPackets(packetsRecieved + numPackets);
+    }
+    return numPackets;
+  }
 
-  // private:
+  private:
   WiFiServer server;
   IPAddress ipAddr;
-  WiFiClient clients[3];
+  ClientConnection clients[3];
+
+  static const int wantedClients = (1 << NUM_CLIENTS) - 1;
+  int connectedClients;
+
+  Packet incomingPackets[NUM_CLIENTS * ClientConnection::MAX_INCOMING_PACKETS];
 };
 
 #endif

@@ -1,16 +1,33 @@
 #ifndef NETWORK
 #define NETWORK
+#include "Packet.h"
 #include <WiFiS3.h>
 #include <cstdio>
 #define SSID "sa"      // my phone hotspot
 #define PWD "abcdefgh" // my phone hotspot password for this
 #define PORT 8000
 
-enum ClientIDs {
+// IDs for a game client to assume. there should only be one of each connecting
+// to the game server
+enum ClientID {
   GAME_IN,
   POWERUP_IN,
   POWERUP_FB,
 };
+
+struct ConnectionPacket : Packet{
+public:
+  ConnectionPacket(ClientID id) {
+    ConnectionPacketData data = { .id = id };
+    this->withData(&data).sendable();
+  }
+
+private:
+  struct ConnectionPacketData : PacketData{
+    ClientID id;
+  };
+};
+
 /**
  * gets IP address via serial
  * input IP address must be in format of w.x.y.z, where the variables are ints
