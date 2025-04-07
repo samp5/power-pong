@@ -3,25 +3,29 @@
 #include "Client.h"
 #include "Network.h"
 #include "Packet.h"
-#include <WiFi.h>
+#include <WiFiS3.h>
 
 struct WifiServer {
 public:
-  WifiServer() : server(PORT) {
-    int status = WiFi.begin(SSID, PWD);
+  WifiServer() : server(PORT) {}
 
+  void initialize() {
+    int status = WiFi.begin(SSID, PWD);
     if (status != WL_CONNECTED) {
+      Serial.println("Not connected :(");
       return;
     } else {
       server.begin();
 
-      this->server = server;
-      this->listener = ClientConnection();
       this->listener.client = server.available();
       this->ipAddr = WiFi.localIP();
+      this->connected = 1;
     }
   }
 
+  int isConnected() { return this->connected; }
+
+  const IPAddress &getIP() { return this->ipAddr; }
   /**
    * send the given packet to all clients
    */
@@ -36,10 +40,11 @@ public:
     return this->listener.readPackets(packetsRecieved);
   }
 
-private:
+  // private:
   WiFiServer server;
   ClientConnection listener;
   IPAddress ipAddr;
+  int connected = 0;
 };
 
 #endif

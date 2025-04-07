@@ -1,5 +1,5 @@
 #include "utils/PowerUps.h"
-#include <WiFi.h>
+#include <WiFiS3.h>
 #include "utils/Client.h"
 #include "utils/Server.h"
 
@@ -107,7 +107,7 @@ void setup() {
 
     // then set up its cooldown duration.
     // exists in a switch case to allow for individual cd tweaking.
-    switch ((PowerUps) i) {
+    switch ((PowerUps)i) {
       case BallSpeedUp:
         powerupStatus[i].cd = 5000;
         break;

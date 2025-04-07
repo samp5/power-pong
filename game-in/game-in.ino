@@ -1,4 +1,5 @@
 #include "utils/GameState.h"
+#include "utils/Server.h"
 
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -10,6 +11,7 @@
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 GameState STATE({ SCREEN_WIDTH, SCREEN_HEIGHT });
+WifiServer server;
 
 void initState();
 
@@ -52,16 +54,21 @@ void drawStartScreen(String intro) {
 
 
 void setup() {
+  delay(2000);
+
   initState();
+  server.initialize();
 
   Serial.begin(9600);
-  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-    Serial.println(F("SSD1306 allocation failed"));
-    for (;;);  // Don't proceed, loop forever
-  }
+  Serial.println("Started serial");
 
-  display.display();
-  delay(1000);  // Pause for 2 seconds
+  Serial.print("Server is connected: ");
+  Serial.print(server.isConnected());
+  Serial.print("\n");
+  Serial.print("Server status: ");
+  Serial.print(WiFi.status());
+  Serial.print("\n");
+  Serial.println(server.getIP());
 
   STATE.update(millis());
   display.display();
@@ -110,7 +117,17 @@ void updateDisplay() {
 
 
 void loop() {
-  if (STATE.update(millis())) {
-    updateDisplay();
+  // if (STATE.update(millis())) {
+  //   updateDisplay();
+  // }
+  //
+  if (STATE.player1.input.up.checkPress()) {
+    Serial.println("Button Pressed!");
+    Serial.println("Building packet");
+    CooldownsTriggeredData d;
+    d.packetsTriggered = 1;
+    Packet p = Packet(PowerupActivatePacket).withData(&d).sendable();
+    Serial.println("Sending packet");
+    server.sendPacket(&p);
   }
 }

@@ -1,9 +1,9 @@
 #ifndef NETWORK
 #define NETWORK
-#include "WiFi.h"
+#include <WiFiS3.h>
 #include <cstdio>
-#define SSID "STARS Vessel"  // my phone hotspot
-#define  PWD "ThisIsASecurePassword1!" // my phone hotspot password for this
+#define SSID "sa"      // my phone hotspot
+#define PWD "abcdefgh" // my phone hotspot password for this
 #define PORT 8000
 
 /**
@@ -15,7 +15,8 @@ IPAddress getIPSerial() {
   char input[64];
 
   // wait for input
-  while (Serial.available() == 0);
+  while (Serial.available() == 0) {
+  };
   //
   // clear from prev input
   memset(input, '\0', 64);
@@ -24,6 +25,5 @@ IPAddress getIPSerial() {
   // parse the input
   IPAddress ip(input);
 }
-
 
 #endif // !NETWORK
