@@ -57,18 +57,22 @@ void setup() {
   delay(2000);
 
   initState();
-  server.initialize();
 
   Serial.begin(9600);
   Serial.println("Started serial");
 
-  Serial.print("Server is connected: ");
-  Serial.print(server.isConnected());
-  Serial.print("\n");
+  server.initialize();
   Serial.print("Server status: ");
   Serial.print(WiFi.status());
   Serial.print("\n");
   Serial.println(server.getIP());
+
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for (;;);  // Don't proceed, loop forever
+  }
+  display.display();
+  delay(1000);  // Pause for 2 seconds
 
   STATE.update(millis());
   display.display();
@@ -117,17 +121,20 @@ void updateDisplay() {
 
 
 void loop() {
-  // if (STATE.update(millis())) {
-  //   updateDisplay();
-  // }
-  //
-  if (STATE.player1.input.up.checkPress()) {
-    Serial.println("Button Pressed!");
-    Serial.println("Building packet");
-    CooldownsTriggeredData d;
-    d.packetsTriggered = 1;
-    Packet p = Packet(PowerupActivatePacket).withData(&d).sendable();
-    Serial.println("Sending packet");
-    server.sendPacket(&p);
+  if (STATE.update(millis())) {
+    updateDisplay();
+  }
+
+  WiFiClient client = server.clients[0];
+  if (client && client.connected() && client.available()) {
+    client.println("I could be sending you a packet right now");
+    // Serial.println("Building packet");
+    // CooldownsTriggeredData d;
+    // d.packetsTriggered = 1;
+    // Packet p = Packet(PowerupActivatePacket).withData(&d).sendable();
+    // Serial.println("Sending packet");
+    // server.sendPacket(,&p);
+    // Serial.println("Packet sent");
+    // client.stop();
   }
 }

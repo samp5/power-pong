@@ -6,6 +6,11 @@
 #define PWD "abcdefgh" // my phone hotspot password for this
 #define PORT 8000
 
+enum ClientIDs {
+  GAME_IN,
+  POWERUP_IN,
+  POWERUP_FB,
+};
 /**
  * gets IP address via serial
  * input IP address must be in format of w.x.y.z, where the variables are ints
