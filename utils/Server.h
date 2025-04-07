@@ -13,8 +13,11 @@ public:
     if (status != WL_CONNECTED) {
       return;
     } else {
-      this->server.begin();
-      this->listener = server.available();
+      server.begin();
+
+      this->server = server;
+      this->listener = ClientConnection();
+      this->listener.client = server.available();
       this->ipAddr = WiFi.localIP();
     }
   }

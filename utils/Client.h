@@ -5,6 +5,8 @@
 #include "Packet.h"
 
 struct ClientConnection {
+friend class WifiServer;
+
 public:
   static const int MAX_INCOMING_PACKETS = 16;
 
