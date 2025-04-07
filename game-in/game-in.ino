@@ -11,6 +11,7 @@
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 GameState STATE({ SCREEN_WIDTH, SCREEN_HEIGHT });
 
+void initState();
 
 void drawStartScreen(String intro) {
   display.clearDisplay();
@@ -49,29 +50,48 @@ void drawStartScreen(String intro) {
   // }
 }
 
-void initState();
 
 void setup() {
   initState();
-  drawStartScreen("POWER PONG!");
+
+  Serial.begin(9600);
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for (;;);  // Don't proceed, loop forever
+  }
+
+  display.display();
+  delay(1000);  // Pause for 2 seconds
+
+  STATE.update(millis());
+  display.display();
+
+  // drawStartScreen("POWER PONG!");
 }
 
 void initState() {
-  STATE.ball.postion = { display.width() / 2, display.height() / 2 };
   STATE.powerUpStat = 0;
 }
 
 void drawPaddle(const Paddle& p) {
-  // TODO:
-  display.drawRoundRect(p.paddlePosition.x, p.paddlePosition.y, p.halfheight * 2, p.halfwidth * 2, 2, WHITE);
+  // position refers to the center of the rectangle, so we need to adjust since we draw at the upper lefthand corner
+  display.drawRoundRect(p.position.x, p.position.y - p.halfheight, p.halfwidth * 2, p.halfheight * 2, 2, WHITE);
 }
 
-void drawBall(Position p) {
-  // TODO:
+void drawBall(const Ball& b) {
+  display.drawCircle(b.postion.x, b.postion.y, b.radius, WHITE);
 }
 
 void drawScoreBoard(int player1Score, int player2Score) {
-  // TODO:
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  int16_t x, y;
+  uint16_t w2, h2;
+  char secondLine[16];
+  sprintf(secondLine, "%d - %d", player1Score, player2Score);
+  display.getTextBounds(secondLine, 0, 0, &x, &y, &w2, &h2);
+  display.setCursor(display.width() / 2 - (w2 / 2), h2 + 3);
+  display.println(secondLine);
 }
 
 void drawPowerUpUpdates(PowerUpStatus newStatus) {
@@ -82,7 +102,7 @@ void updateDisplay() {
   display.clearDisplay();
   drawPaddle(STATE.player1.getPaddle());
   drawPaddle(STATE.player2.getPaddle());
-  drawBall(STATE.ball.postion);
+  drawBall(STATE.ball);
   drawScoreBoard(STATE.player1.score, STATE.player2.score);
   drawPowerUpUpdates(STATE.powerUpStat);
   display.display();
@@ -90,6 +110,7 @@ void updateDisplay() {
 
 
 void loop() {
-  STATE.update(millis());
-  updateDisplay();
+  if (STATE.update(millis())) {
+    updateDisplay();
+  }
 }

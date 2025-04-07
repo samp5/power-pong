@@ -7,7 +7,7 @@
  */
 class Button {
 private:
-  static const unsigned long debounceDelay = 50;
+  static const unsigned long debounceDelay = 20;
 
 public:
   int pin;
