@@ -32,10 +32,25 @@ int updatedCDStatus;
 // -----------------------
 //       CD FUNCS
 // -----------------------
+void tmpReadResponse() {
+  uint32_t received_data_num = 0;
+  while (client.client.available()) {
+    /* actual data reception */
+    char c = client.client.read();
+    /* print data to serial port */
+    Serial.print(c);
+    /* wrap data to 80 columns*/
+    received_data_num++;
+    if(received_data_num % 80 == 0) { 
+      Serial.println();
+    }
+  }
+}
+
 void invokeCD() {
   // get all packets recieved
   Packet** packetsRecieved;
-  int packets = client.readPackets(packetsRecieved);
+  int packets = /*client.readPackets(packetsRecieved);*/ 0;
 
   // for each packet recieved
   for (int i = 0; i < packets; ++i) {
@@ -97,10 +112,13 @@ void updateCooldowns() {
 //        INO FUNCS
 // -----------------------
 void setup() {
+  Serial.begin(9600);
+
   // for each powerup
   for (int i = 0; i < 5; ++i) {
     // set its LED to output
     pinMode(LED_PINS[i], OUTPUT);
+    digitalWrite(LED_PINS[i], HIGH);
 
     // always set cooldown as expired
     powerupStatus[i].cdExpired = true;
@@ -135,11 +153,14 @@ void setup() {
 
   updatedCDStatus = 0;
 
-  // connect to server
-  client = ClientConnection(getIPSerial());
+  IPAddress ip = getIPSerial();
+  client = ClientConnection(ip);
+  client.write((char)0);
+  Serial.println("Sent 0");
 }
 
 void loop() {
+  tmpReadResponse();
   invokeCD();
   updateCooldowns();
 }

@@ -19,16 +19,19 @@ enum ClientIDs {
 IPAddress getIPSerial() {
   char input[64];
 
+  Serial.println("Connected to Serial. Input IP Address");
   // wait for input
   while (Serial.available() == 0) {
   };
-  //
+
   // clear from prev input
   memset(input, '\0', 64);
   Serial.readBytesUntil('\n', input, 64);
 
   // parse the input
   IPAddress ip(input);
+
+  return ip;
 }
 
 #endif // !NETWORK

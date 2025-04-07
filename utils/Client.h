@@ -18,12 +18,20 @@ public:
    * create a new client connection connected to the given ip address
    */
   ClientConnection(IPAddress ipaddr) {
+    Serial.println("Connecting to WiFi...");
     int status = WiFi.begin(SSID, PWD);
-    if (status != WL_CONNECTED) {
-      return;
+    while (status != WL_CONNECTED) {
+      Serial.println("Unable to connect to wifi, trying again...");
+      delay(10000); // wait 10s before trying again
+      status = WiFi.begin(SSID, PWD);
     }
 
-    this->client.connect(ipaddr, PORT);
+    Serial.println("Connecting to server...");
+    while (!this->client.connect(ipaddr, PORT)) {
+      Serial.println("Unable to connect to server, trying again...");
+    }
+
+    Serial.println("Connected to server");
   }
 
   /**
@@ -76,7 +84,7 @@ public:
 
   bool isConnected() { return client.connected(); }
 
-private:
+// private:
   WiFiClient client;
   Packet incomingPackets[MAX_INCOMING_PACKETS];
 };
