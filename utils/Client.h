@@ -24,6 +24,9 @@ public:
    this->client.connect(ipaddr, PORT);
   }
 
+  /**
+   * send the given packet to the server
+   */
   void sendPacket(Packet* p) {
     this->client.print(p->asBytes());
   }
