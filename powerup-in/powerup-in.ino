@@ -1,5 +1,4 @@
-#include <Keypad.h>
-#include <memory>
+#include <Adafruit_Keypad.h>
 
 class Joystick{
   private:
@@ -166,13 +165,20 @@ class Photoresistor{
 // is this dumb? Yes, very much so but it probably works
 class NumPad{
   private:
-    std::unique_ptr<Keypad> customKeypad;
     int result = 0;
     int sum[2];
 
     void generateEquation(){
       sum[0] = random(1, 101);
       sum[1] = random(1, 101);
+    }
+
+  public:
+  
+    NumPad(){
+      // we are randomizing with empty analog pin noise
+      randomSeed(analogRead(A5));
+      generateEquation();
     }
 
     void printEquation(){
@@ -183,52 +189,27 @@ class NumPad{
       (result == 0) ? Serial.println("?") : Serial.println(result);
     }
 
-  public:
-  
-    NumPad(int R1, int R2, int R3, int R4, int C1, int C2, int C3, int C4){
-      // we are randomizing with empty analog pin noise
-      randomSeed(analogRead(A5));
-      const byte ROWS = 4; 
-      const byte COLS = 4; 
-
-      char hexaKeys[ROWS][COLS] = {
-        {'1', '2', '3', 'A'},
-        {'4', '5', '6', 'B'},
-        {'7', '8', '9', 'C'},
-        {'*', '0', '#', 'D'}
-      };
-
-      byte rowPins[ROWS] = {R1, R2, R3, R4}; 
-      byte colPins[COLS] = {C1, C2, C3, C4};
-      customKeypad = std::make_unique<Keypad>(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
-      generateEquation();
-      printEquation();
-    }
-
-    void checkKey(){
-      char customKey = customKeypad->getKey();
-
-      if (customKey){
-        switch (customKey) {
-          case 'A':
-          case 'B':
-          case 'C':
-          case 'D':
-          case '#':
-            result = 0;
-            break;
-          case '*':
-            result /= 10;
-            break;
-          default:
-            result = result * 10 + (customKey - '0');
-        }
-        printEquation();
-        if (result = sum[0] + sum[1]){
-          Serial.println("NumPad PowerUp activated!");
+    void checkKey(char customKey){
+      switch (customKey) {
+        case 'A':
+        case 'B':
+        case 'C':
+        case 'D':
+        case '#':
           result = 0;
-          generateEquation();
-        }
+          break;
+        case '*':
+          result /= 10;
+          break;
+        default:
+          result = result * 10 + (customKey - '0');
+      }
+      printEquation();
+      if (result == sum[0] + sum[1]){
+        Serial.println("NumPad PowerUp activated!");
+        result = 0;
+        generateEquation();
+        printEquation();
       }
     }
 };
@@ -237,15 +218,45 @@ Joystick joystick = Joystick(A0, A1);
 Motor motor = Motor(A2);
 UltraSonicSensor ultraSonicSensor = UltraSonicSensor(3, 5);
 Photoresistor photoresistor = Photoresistor(A3);
-NumPad numpad = NumPad(12, 11, 10, 9, 8, 7, 6, 4);
+NumPad numpad;
+
+const byte ROWS = 4;
+const byte COLS = 4;
+
+// Define the characters mapped to each button on the 4x4 keypad
+char keys[ROWS][COLS] = {
+  { '1', '2', '3', 'A' },
+  { '4', '5', '6', 'B' },
+  { '7', '8', '9', 'C' },
+  { '*', '0', '#', 'D' }
+};
+
+// Define the Arduino pins connected to the row pinouts of the keypad
+byte rowPins[ROWS] = { 12, 11, 10, 9 };
+// Define the Arduino pins connected to the column pinouts of the keypad
+byte colPins[COLS] = { 8, 7, 6, 4 };
+
+// Initialize a custom keypad instance
+Adafruit_Keypad myKeypad = Adafruit_Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
 void setup() {
   Serial.begin(9600);
   Serial.println("Beggining serial power-in!");
+  myKeypad.begin();
+  numpad.printEquation();
 }
 
 void loop() {
-  numpad.checkKey();
+  // numpad.checkKey();
+  myKeypad.tick();
+
+  // Check if there are new keypad events
+  while (myKeypad.available()) {
+    // Read the keypad event
+    keypadEvent e = myKeypad.read();
+    // Print the type of event: pressed or released
+    if (e.bit.EVENT == KEY_JUST_PRESSED) numpad.checkKey((char)e.bit.KEY);
+  }
   joystick.checkQuadrants();
   motor.checkMotorMotion();
   photoresistor.checkPhotoresistor();
