@@ -92,6 +92,10 @@ public:
     return numPackets;
   }
 
+  ClientConnection& getClient(int id) {
+    return clients[id];
+  }
+
   private:
   WiFiServer server;
   IPAddress ipAddr;
