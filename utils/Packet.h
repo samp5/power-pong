@@ -6,17 +6,38 @@
 #define PACKET_SIZE_TYPE unsigned int
 #define PACKET_SIZE_TYPE_SIZE sizeof(PACKET_SIZE_TYPE)
 #define PACKET_TYPE_SIZE sizeof(PacketType)
+#define NUM_POWERUPS 5
 
 enum PacketType {
   PlayerMove,
   GameStatePacket,
   PowerupCDPacket,
   PowerupActivatePacket,
+  PowerupAvailablePacket,
+  PowerupStatusPacket,
   PACKET_COUNT, // always have last to keep size
 };
 
 
 struct PacketData {};
+
+struct PowerupActivatePacket : public PacketData {
+    uint8_t powerupType;
+};
+
+struct PowerupCDPacket : public PacketData {  
+    uint8_t powerupType;
+    unsigned long duration;
+};
+
+struct PowerupAvailablePacket : public PacketData {
+    uint8_t powerupType;
+};
+
+struct PowerupStatusPacket : public PacketData {
+    bool available[NUM_POWERUPS];
+    unsigned long remaining[NUM_POWERUPS];
+};
 
 struct Packet {
 public:
