@@ -1,4 +1,22 @@
 #include <Adafruit_Keypad.h>
+#include <WiFiS3.h>
+#include "utils/PowerUps.h"
+#include "utils/Client.h"
+#include <LiquidCrystal_I2C.h>
+
+WifiServer server;
+ClientConnection client;
+
+void sendCDTriggerPacket(int powerUpType){
+  if(!client.isConnected()) return;
+
+  CooldownsTriggeredData data;
+  data.packetsTriggered = powerUpType;
+  Packet p = Packet(PowerupActivatePacket).withData(&data).sendable();
+  client.sendPacket(&p);
+}
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 class Joystick{
   private:
@@ -22,6 +40,7 @@ class Joystick{
       }else if (quadrants_verified == 4){
         if (millis() - initial_verification <= TIME_TO_COMPLETE){
           Serial.println("Joystick PowerUp activated!");
+          sendCDTriggerPacket(0b00001);
         }
         quadrants_verified = 0;
         bool temp[4] = {false, false, false, false};
@@ -73,8 +92,8 @@ class Joystick{
 class Motor{
   private:
     int DELAY_TIME = 50;
-    int IDLE_VALUE = 363;
-    int SPIN_INTENSITY = 8;
+    int IDLE_VALUE = 357;
+    int SPIN_INTENSITY = 6;
 
     int prev_time = 0;
 
@@ -95,6 +114,7 @@ class Motor{
         // the reading may fluctuate by a few points every once in a while
         if (reading < IDLE_VALUE - SPIN_INTENSITY || reading > IDLE_VALUE + SPIN_INTENSITY){
           Serial.println("Motor PowerUp Activated!");
+          sendCDTriggerPacket(0b00100);
         }
       }
     }
@@ -132,6 +152,7 @@ class UltraSonicSensor{
         distance = (duration * .0343) / 2;
         if (distance <= DISTANCE_TO_ACTIVATE){
           Serial.println("UltraSonicSensor PowerUp activated!");
+          sendCDTriggerPacket(0b01000);
         }
       }
     }
@@ -157,6 +178,7 @@ class Photoresistor{
         int reading = analogRead(pin);
         if (reading >= LIGHT_THRESHOLD){
           Serial.println("Photoresistor PowerUp activated!");
+          sendCDTriggerPacket(0b00010);
         }
       }
     }
@@ -182,11 +204,11 @@ class NumPad{
     }
 
     void printEquation(){
-      Serial.print(sum[0]);
-      Serial.print(" + ");
-      Serial.print(sum[1]);
-      Serial.print(" = ");
-      (result == 0) ? Serial.println("?") : Serial.println(result);
+      char equation[20];
+      sprintf(equation, "%d + %d = %s", sum[0], sum[1], (result == 0) ? "?" : std::to_strign(result))
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print(equation);
     }
 
     void checkKey(char customKey){
@@ -207,6 +229,7 @@ class NumPad{
       printEquation();
       if (result == sum[0] + sum[1]){
         Serial.println("NumPad PowerUp activated!");
+        sendCDTriggerPacket(0b10000);
         result = 0;
         generateEquation();
         printEquation();
@@ -242,8 +265,13 @@ Adafruit_Keypad myKeypad = Adafruit_Keypad(makeKeymap(keys), rowPins, colPins, R
 void setup() {
   Serial.begin(9600);
   Serial.println("Beggining serial power-in!");
+  lcd.init();
+  lcd.clear();
+  lcd.backlight();
   myKeypad.begin();
   numpad.printEquation();
+  IPAddress ip = getIPSerial();
+  client = ClientConnection(POWERUP_IN, ip);
 }
 
 void loop() {
