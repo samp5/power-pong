@@ -45,10 +45,6 @@ enum PowerUps {
  * this means that just this cooldown expired. it does not mean that others are
  * not available.
  */
-struct CooldownsExpiredData : PacketData {
-  int cooldownsExpired;
-};
-
 /**
  * Packet data that is sent:
  *    to: Powerup Feedback
@@ -68,8 +64,5 @@ struct CooldownsExpiredData : PacketData {
  * this means that just this powerup was activated. it does not mean that others
  * are not.
  */
-struct CooldownsTriggeredData : PacketData {
-  int packetsTriggered;
-};
 
 #endif // !POWER_UPS_H

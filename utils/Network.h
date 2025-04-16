@@ -15,22 +15,6 @@ enum ClientID {
   POWERUP_FB,
 };
 
-struct ConnectionPacket : Packet{
-public:
-  ConnectionPacket(ClientID id) {
-    ConnectionPacketData data(id);
-    this->withData(&data).sendable();
-  }
-
-private:
-  struct ConnectionPacketData : PacketData{
-    ClientID id;
-    ConnectionPacketData(ClientID id){
-      this->id = id;
-    }
-  };
-};
-
 /**
  * gets IP address via serial
  * input IP address must be in format of w.x.y.z, where the variables are ints

@@ -35,8 +35,7 @@ public:
     }
 
     // feedback of connection
-    ConnectionPacket idPacket(clientID);
-    sendPacket(&idPacket);
+    client.write((char)clientID);
     Serial.println("Connected to server");
   }
 
@@ -50,7 +49,7 @@ public:
   /**
    * send the given packet to the server
    */
-  void sendPacket(Packet *p) { this->client.print(p->asBytes()); }
+  void sendPacket(Packet *p) { this->client.print(p->data); }
 
   /**
    * @param packetsRecieved a packet double pointer which will be given an array
@@ -60,32 +59,8 @@ public:
   int readPackets(Packet **packetsRecieved) {
     int packetsRead = 0;
     while (this->client.available() > 0) {
-      // parse the header, byte by byte because you can't any other way
-      char typeArr[PACKET_TYPE_SIZE];
-      for (int i = 0; i < PACKET_TYPE_SIZE; ++i) {
-        typeArr[i] = this->client.read();
-      }
-      char sizeArr[PACKET_SIZE_TYPE_SIZE];
-      for (int i = 0; i < PACKET_SIZE_TYPE_SIZE; ++i) {
-        sizeArr[i] = this->client.read();
-      }
-
-      // convert the bytes to their correct types
-      PacketType type;
-      PACKET_SIZE_TYPE size;
-      memcpy(&type, typeArr, PACKET_TYPE_SIZE);
-      memcpy(&size, sizeArr, PACKET_SIZE_TYPE_SIZE);
-
-      // read the amount of bytes for this packet
-      char packetData[size];
-      for (int i = 0; i < size; ++i) {
-        packetData[size] = this->client.read();
-      }
-
-      // convert the bytes into a packet
-      Packet p = Packet(type).fromBytes(packetData, size);
-
-      // place into array
+      Packet p;
+      p.setData(client.read());
       this->incomingPackets[packetsRead] = p;
       ++packetsRead;
     }

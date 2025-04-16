@@ -40,11 +40,17 @@ public:
    */
   void getClients() {
     while (this->connectedClients != wantedClients) {
+      Serial.println("watned clients is:");
+      Serial.println(wantedClients);
       WiFiClient client = server.available();
       if (client) {
+        Serial.println("client is non null");
         while (client.connected()) {
+          Serial.println("client is connected");
           if (client.available()) {
             ClientID c = (ClientID) client.read();
+            Serial.println("read");
+            Serial.println(c);
             
             switch (c) {
               case GAME_IN:
@@ -57,13 +63,17 @@ public:
                 Serial.println("Connected to Powerup Feedback");
                 break;
             }
+            Serial.println("Its all good now");
 
             connectedClients |= 1 << c;
             this->clients[c] = ClientConnection(client);
             break;
           }
         }
-      }
+      }else {
+      Serial.println("didn't enter if");
+      } 
+
     }
   }
 

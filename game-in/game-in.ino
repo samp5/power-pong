@@ -11,7 +11,8 @@
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 GameState STATE({ SCREEN_WIDTH, SCREEN_HEIGHT });
-WifiServer server;
+ClientConnection client;
+Packet packetArr[16];
 
 void initState();
 
@@ -55,8 +56,11 @@ void drawStartScreen(String intro) {
 void setup() {
   initState();
 
+
   Serial.begin(9600);
   Serial.println("Started serial");
+  IPAddress addr = getIPSerial();
+  client = ClientConnection(GAME_IN, addr);
 
   // server.initialize();
   // Serial.print("Server status: ");
@@ -116,8 +120,16 @@ void updateDisplay() {
   display.display();
 }
 
+void handlePackets(){
+    Packet** p = (Packet**) &packetArr;
+    int recieved = client.readPackets(p);
+    Serial.print("got nPackets: ");
+    Serial.println(recieved);
+}
 
 void loop() {
+  handlePackets();
+
   if (STATE.update(millis())) {
     updateDisplay();
   }

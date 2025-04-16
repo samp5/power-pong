@@ -12,26 +12,22 @@ void managePacket(Packet* packet) {
   Serial.println("managing packet");
     switch (packet->getType()) {
         case PowerupActivatePacket: {
-            CooldownsTriggeredData data;
-            packet->toStruct(&data);
-            handlePowerupActivation(data);
+            handlePowerupActivation(packet->getData());
             break;
         }
         case PowerupCDPacket:
-            CooldownsExpiredData data;
-            packet->toStruct(&data);
-            handleCooldownExpired(data);
+            handleCooldownExpired(packet->getData());
             break;
     }
 }
 
-void handlePowerupActivation(const CooldownsTriggeredData& data) {
+void handlePowerupActivation(int activated) {
     Serial.println("handlig powerup activation");
     int toActivate = 0;
     for (int i = 0; i < NUM_POWERUPS; i++){
         Serial.print("checking powerup: ");
         Serial.println(i);
-      if ((data.packetsTriggered >> i) & (cooldownsExpired >> 1)) {
+      if ((activated >> i) & (cooldownsExpired >> 1)) {
         Serial.println("should be activated! ");
         toActivate = toActivate | (0b1 << i);
         Serial.print("toActivate is now:");
@@ -43,9 +39,8 @@ void handlePowerupActivation(const CooldownsTriggeredData& data) {
     }
 
     if (toActivate > 0){
-      CooldownsTriggeredData data;
-      data.packetsTriggered = toActivate;
-      Packet p = Packet(PowerupActivatePacket).withData(&data).sendable();
+      Packet p = Packet(PowerupActivatePacket);
+      p.setData(toActivate);
 
       Serial.println("sending packet to game input");
       server.sendPacket(GAME_IN, &p);
@@ -54,10 +49,10 @@ void handlePowerupActivation(const CooldownsTriggeredData& data) {
     }
 }
 
-void handleCooldownExpired(const CooldownsExpiredData& data) {
+void handleCooldownExpired(int cooldowns) {
     Serial.println("handling cooldown expired");
     for (int i = 0; i < NUM_POWERUPS; i++){
-      if ((data.cooldownsExpired >> i) & 0b1) {
+      if ((cooldowns >> i) & 0b1) {
           Serial.print("cooldowns expired is now: ");
           Serial.println(cooldownsExpired);
           cooldownsExpired = cooldownsExpired | (0b1 << i);
@@ -74,6 +69,8 @@ void setup() {
 void loop() {
     Packet** ppp = (Packet**) &packetArr;
     int packetsRecived = server.readPackets(ppp);
+    Serial.print("packets recieved:");
+    Serial.println(packetsRecived);
     for (int i = 1; i < packetsRecived; i++) {
         managePacket(&packetArr[i]);
     }

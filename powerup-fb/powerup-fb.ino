@@ -44,14 +44,10 @@ void invokeCD() {
 
     // only process powerup activation packets
     if (packet->getType() == PowerupActivatePacket) {
-      // parse the packet appropriately
-      CooldownsTriggeredData triggered;
-      packet->toStruct(&triggered);
-
       // for each powerup
       for (int i = 0; i < 5; ++i) {
         // if the triggered but was set, set invoked to now
-        if ((triggered.packetsTriggered >> i) & 0b1) {
+        if ((packet->getData() >> i) & 0b1) {
           powerupStatus[i].lastInvoked = millis();
         }
       }
@@ -62,10 +58,11 @@ void invokeCD() {
 void sendCDPacket() {
   if (!client.isConnected()) return;
 
-  CooldownsExpiredData data;
-  data.cooldownsExpired = updatedCDStatus;
-  Packet p = Packet(PowerupCDPacket).withData(&data).sendable();
-  client.sendPacket(&p);
+  return;
+  // CooldownsExpiredData data;
+  // data.cooldownsExpired = updatedCDStatus;
+  // Packet p = Packet(PowerupCDPacket).withData(&data).sendable();
+  // client.sendPacket(&p);
 }
 
 void updateCooldowns() {
