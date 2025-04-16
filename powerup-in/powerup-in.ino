@@ -9,9 +9,8 @@ ClientConnection client;
 void sendCDTriggerPacket(int powerUpType){
   if(!client.isConnected()) return;
 
-  CooldownsTriggeredData data;
-  data.packetsTriggered = powerUpType;
-  Packet p = Packet(PowerupActivatePacket).withData(&data).sendable();
+  Packet p = Packet(PowerupActivatePacket);
+  p.setData(powerUpType);
   client.sendPacket(&p);
 }
 

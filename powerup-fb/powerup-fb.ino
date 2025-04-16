@@ -35,7 +35,7 @@ int updatedCDStatus;
 void invokeCD() {
   // get all packets recieved
   Packet** packetsRecieved;
-  int packets = /*client.readPackets(packetsRecieved);*/ 0;
+  int packets = client.readPackets(packetsRecieved);
 
   // for each packet recieved
   for (int i = 0; i < packets; ++i) {
@@ -58,7 +58,9 @@ void invokeCD() {
 void sendCDPacket() {
   if (!client.isConnected()) return;
 
-  return;
+  Packet p = Packet(PowerupCDPacket);
+  p.setData(updatedCDStatus);
+  client.sendPacket(&p);
   // CooldownsExpiredData data;
   // data.cooldownsExpired = updatedCDStatus;
   // Packet p = Packet(PowerupCDPacket).withData(&data).sendable();
