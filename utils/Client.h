@@ -62,9 +62,13 @@ public:
       Packet p;
       byte b = client.read();
       Serial.print("Client::readPackets read: ");
-      Serial.print(b);
+      Serial.println(b);
+
       p.setData(b);
-      *packetsRecieved[packetsRead] = p;
+      Serial.print("Packet now contains: ");
+      Serial.println(p.data);
+
+      *(packetsRecieved[packetsRead]) = p;
       ++packetsRead;
     }
 

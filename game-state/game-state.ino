@@ -89,7 +89,7 @@ void loop() {
       Serial.println(packetsRecived);
     }
     for (int i = 0; i < packetsRecived; i++) {
-        Serial.print((byte)packetArr[i].data);
+        Serial.print((int)(packetArr[i].data));
         Serial.print(" or 0b");
         for (int j = 7; j >=0; j--){
           Serial.print((int)((packetArr[i].data & (0b1 << j)) & 1));

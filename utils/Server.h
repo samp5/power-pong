@@ -92,11 +92,12 @@ public:
    * @return the number of packets recieved.
    */
   int readPackets(Packet **packetsRecieved) {
-    Serial.println("reading from clients");
     int numPackets = 0;
     for (int i = 0; i < NUM_CLIENTS; ++i) {
       numPackets += clients[i].readPackets(packetsRecieved + numPackets);
     }
+    Serial.print("Server::readPackets num packets is ");
+    Serial.println(numPackets);
     return numPackets;
   }
 
