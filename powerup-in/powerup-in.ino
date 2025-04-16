@@ -4,7 +4,6 @@
 #include "utils/Client.h"
 #include <LiquidCrystal_I2C.h>
 
-WifiServer server;
 ClientConnection client;
 
 void sendCDTriggerPacket(int powerUpType){
@@ -205,7 +204,7 @@ class NumPad{
 
     void printEquation(){
       char equation[20];
-      sprintf(equation, "%d + %d = %s", sum[0], sum[1], (result == 0) ? "?" : std::to_strign(result))
+      sprintf(equation, "%d + %d = %s", sum[0], sum[1], (result == 0) ? "?" : std::to_string(result));
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print(equation);

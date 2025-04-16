@@ -1,5 +1,5 @@
 #include "utils/PowerUps.h"
-#include <WiFiS3.h>
+#include "utils/Packet.h"
 #include "utils/Client.h"
 #include "utils/Server.h"
 
@@ -51,7 +51,7 @@ void invokeCD() {
       // for each powerup
       for (int i = 0; i < 5; ++i) {
         // if the triggered but was set, set invoked to now
-        if (triggered.packetsTriggered >> i) {
+        if ((triggered.packetsTriggered >> i) & 0b1) {
           powerupStatus[i].lastInvoked = millis();
         }
       }

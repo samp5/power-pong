@@ -58,7 +58,8 @@ void setup() {
 }
 
 void loop() {
-    int packetsRecived = server.readPackets(&packetArr);
+    Packet** ppp = (Packet**) &packetArr;
+    int packetsRecived = server.readPackets(ppp);
     for (int i = 1; i < packetsRecived; i++) {
         managePacket(&packetArr[i]);
     }

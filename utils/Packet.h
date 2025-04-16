@@ -2,7 +2,7 @@
 #define PACKET_H
 #include <cstring>
 #include <string.h>
-#define PACKET_MAX_SZ 120
+#define PACKET_MAX_SZ 60
 #define PACKET_SIZE_TYPE unsigned int
 #define PACKET_SIZE_TYPE_SIZE sizeof(PACKET_SIZE_TYPE)
 #define PACKET_TYPE_SIZE sizeof(PacketType)

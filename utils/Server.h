@@ -92,10 +92,6 @@ public:
     return numPackets;
   }
 
-  ClientConnection& getClient(int id) {
-    return clients[id];
-  }
-
   private:
   WiFiServer server;
   IPAddress ipAddr;
@@ -103,8 +99,6 @@ public:
 
   static const int wantedClients = (1 << NUM_CLIENTS) - 1;
   int connectedClients;
-
-  Packet incomingPackets[NUM_CLIENTS * ClientConnection::MAX_INCOMING_PACKETS];
 };
 
 #endif
