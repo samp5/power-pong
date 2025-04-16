@@ -40,8 +40,6 @@ public:
    */
   void getClients() {
     while (this->connectedClients != wantedClients) {
-      Serial.println("watned clients is:");
-      Serial.println(wantedClients);
       WiFiClient client = server.available();
       if (client) {
         Serial.println("client is non null");
@@ -71,7 +69,6 @@ public:
           }
         }
       }else {
-      Serial.println("didn't enter if");
       } 
 
     }
@@ -95,6 +92,7 @@ public:
    * @return the number of packets recieved.
    */
   int readPackets(Packet **packetsRecieved) {
+    Serial.println("reading from clients");
     int numPackets = 0;
     for (int i = 0; i < NUM_CLIENTS; ++i) {
       numPackets += clients[i].readPackets(packetsRecieved + numPackets);

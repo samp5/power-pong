@@ -123,8 +123,22 @@ void updateDisplay() {
 void handlePackets(){
     Packet** p = (Packet**) &packetArr;
     int recieved = client.readPackets(p);
+  if (recieved > 0 ){
     Serial.print("got nPackets: ");
     Serial.println(recieved);
+  }
+
+  for (int i = 0; i < recieved; i++){
+    Packet p = packetArr[i];
+    Serial.print("raw: ");
+    Serial.print((int)p.data);
+    Serial.print("got: ");
+    Serial.print("type:");
+    Serial.print(p.getType());
+    Serial.print("data:");
+    Serial.println(p.getData());
+
+  }
 }
 
 void loop() {

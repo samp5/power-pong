@@ -18,6 +18,8 @@ void managePacket(Packet* packet) {
         case PowerupCDPacket:
             handleCooldownExpired(packet->getData());
             break;
+        default:
+          Serial.println("no type matched!!");
     }
 }
 
@@ -25,14 +27,23 @@ void handlePowerupActivation(int activated) {
     Serial.println("handlig powerup activation");
     int toActivate = 0;
     for (int i = 0; i < NUM_POWERUPS; i++){
+
         Serial.print("checking powerup: ");
         Serial.println(i);
-      if ((activated >> i) & (cooldownsExpired >> 1)) {
-        Serial.println("should be activated! ");
+
+      if (1 & ((activated >> i) & (cooldownsExpired >> 1))) {
+
+        Serial.print(i);
+        Serial.println(" should be activated! ");
+
         toActivate = toActivate | (0b1 << i);
+
         Serial.print("toActivate is now:");
         Serial.println(toActivate);
+        Serial.println("removing from cooldownsExpired");
+
         cooldownsExpired = cooldownsExpired ^ (0b1 << i);
+
         Serial.print("cooldowns expired is now: ");
         Serial.println(cooldownsExpired);
       }
@@ -52,7 +63,11 @@ void handlePowerupActivation(int activated) {
 void handleCooldownExpired(int cooldowns) {
     Serial.println("handling cooldown expired");
     for (int i = 0; i < NUM_POWERUPS; i++){
+      Serial.print("checking powerup: ");
+      Serial.println(i);
       if ((cooldowns >> i) & 0b1) {
+          Serial.print(i);
+          Serial.println(" is expired");
           Serial.print("cooldowns expired is now: ");
           Serial.println(cooldownsExpired);
           cooldownsExpired = cooldownsExpired | (0b1 << i);
@@ -69,9 +84,17 @@ void setup() {
 void loop() {
     Packet** ppp = (Packet**) &packetArr;
     int packetsRecived = server.readPackets(ppp);
-    Serial.print("packets recieved:");
-    Serial.println(packetsRecived);
-    for (int i = 1; i < packetsRecived; i++) {
+    if (packetsRecived > 0){
+      Serial.print("packets recieved:");
+      Serial.println(packetsRecived);
+    }
+    for (int i = 0; i < packetsRecived; i++) {
+        Serial.print((byte)packetArr[i].data);
+        Serial.print(" or 0b");
+        for (int j = 7; j >=0; j--){
+          Serial.print((int)((packetArr[i].data & (0b1 << j)) & 1));
+        }
+        Serial.println();
         managePacket(&packetArr[i]);
     }
 }

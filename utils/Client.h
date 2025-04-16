@@ -60,13 +60,14 @@ public:
     int packetsRead = 0;
     while (this->client.available() > 0) {
       Packet p;
-      p.setData(client.read());
-      this->incomingPackets[packetsRead] = p;
+      byte b = client.read();
+      Serial.print("Client::readPackets read: ");
+      Serial.print(b);
+      p.setData(b);
+      *packetsRecieved[packetsRead] = p;
       ++packetsRead;
     }
 
-    // set the packetsRecieved to packets read
-    *packetsRecieved = this->incomingPackets;
     return packetsRead;
   }
 
