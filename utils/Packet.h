@@ -21,24 +21,6 @@ enum PacketType {
 
 struct PacketData {};
 
-struct PowerupActivatePacket : public PacketData {
-    uint8_t powerupType;
-};
-
-struct PowerupCDPacket : public PacketData {  
-    uint8_t powerupType;
-    unsigned long duration;
-};
-
-struct PowerupAvailablePacket : public PacketData {
-    uint8_t powerupType;
-};
-
-struct PowerupStatusPacket : public PacketData {
-    bool available[NUM_POWERUPS];
-    unsigned long remaining[NUM_POWERUPS];
-};
-
 struct Packet {
 public:
   /**

@@ -18,13 +18,16 @@ enum ClientID {
 struct ConnectionPacket : Packet{
 public:
   ConnectionPacket(ClientID id) {
-    ConnectionPacketData data = { .id = id };
+    ConnectionPacketData data(id);
     this->withData(&data).sendable();
   }
 
 private:
   struct ConnectionPacketData : PacketData{
     ClientID id;
+    ConnectionPacketData(ClientID id){
+      this->id = id;
+    }
   };
 };
 
