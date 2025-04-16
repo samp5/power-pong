@@ -38,46 +38,43 @@ void drawStartScreen(String intro) {
   display.println(secondLine);
 
   display.display();
+  PongButton inputs[] = { STATE.player1.input.up, STATE.player1.input.down, STATE.player2.input.up, STATE.player2.input.down };
 
-  // for (;;) {
-  //   for (int i = 0; i < num_buttons; i++) {
-  //     Button *curr = &buttons[i];
-  //     curr->state = digitalRead(curr->pin);
-  //     if (curr->prev_state == LOW && curr->state == HIGH) {
-  //       curr->prev_state = curr->state;
-  //       return;
-  //     }
-  //     curr->prev_state = curr->state;
-  //   }
-  // }
+  bool inputRecieved = false;
+  while (!inputRecieved) {
+    for (int i = 0; i < 4; i++) {
+      if (inputs[i].checkPress()) {
+        inputRecieved = true;
+        break;
+      }
+    }
+  }
 }
 
 
 void setup() {
-  delay(2000);
-
   initState();
 
   Serial.begin(9600);
   Serial.println("Started serial");
 
-  server.initialize();
-  Serial.print("Server status: ");
-  Serial.print(WiFi.status());
-  Serial.print("\n");
-  Serial.println(server.getIP());
+  // server.initialize();
+  // Serial.print("Server status: ");
+  // Serial.print(WiFi.status());
+  // Serial.print("\n");
+  // Serial.println(server.getIP());
 
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     Serial.println(F("SSD1306 allocation failed"));
     for (;;);  // Don't proceed, loop forever
   }
-  display.display();
-  delay(1000);  // Pause for 2 seconds
+  // display.display();
+  // delay(1000);  // Pause for 2 seconds
 
   STATE.update(millis());
-  display.display();
+  // display.display();
 
-  // drawStartScreen("POWER PONG!");
+  drawStartScreen("POWER PONG!");
 }
 
 void initState() {
@@ -127,14 +124,14 @@ void loop() {
 
   // WiFiClient client = server.clients[0];
   // if (client && client.connected() && client.available()) {
-  //   client.println("I could be sending you a packet right now");
-  //   // Serial.println("Building packet");
-  //   // CooldownsTriggeredData d;
-  //   // d.packetsTriggered = 1;
-  //   // Packet p = Packet(PowerupActivatePacket).withData(&d).sendable();
-  //   // Serial.println("Sending packet");
-  //   // server.sendPacket(,&p);
-  //   // Serial.println("Packet sent");
-  //   // client.stop();
+  // client.println("I could be sending you a packet right now");
+  // Serial.println("Building packet");
+  // CooldownsTriggeredData d;
+  // d.packetsTriggered = 1;
+  // Packet p = Packet(PowerupActivatePacket).withData(&d).sendable();
+  // Serial.println("Sending packet");
+  // server.sendPacket(,&p);
+  // Serial.println("Packet sent");
+  // client.stop();
   // }
 }

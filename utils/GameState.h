@@ -9,8 +9,8 @@
 #define TICK_RATE 50
 #define P1_PONG_BUTTON_UP 2
 #define P1_PONG_BUTTON_DOWN 3
-#define P2_PONG_BUTTON_UP 4
-#define P2_PONG_BUTTON_DOWN 5
+#define P2_PONG_BUTTON_UP 12
+#define P2_PONG_BUTTON_DOWN 13
 
 /**
  * The gameboard looks something like this
@@ -196,14 +196,6 @@ struct Ball {
 
     // check collision with top and bottom
     if ((newPosition.y - radius) < 0) {
-      snprintf(buf, 1024, "Collision with top");
-      Serial.println(buf);
-      snprintf(buf, 1024, "Ball: (%d,%d) -> (%d,%d), V = <%f, %f> -> <%f, %f>",
-               postion.x, postion.y, newPosition.x, newPosition.y,
-               velocity.x_comp, velocity.y_comp, velocity.x_comp,
-               -velocity.y_comp);
-      Serial.println(buf);
-
       // adjust for how out of bounds we are
       int overlap = 0 - (newPosition.y - radius);
       newPosition.y += overlap;
@@ -212,13 +204,6 @@ struct Ball {
       this->velocity.y_comp = -this->velocity.y_comp;
 
     } else if ((newPosition.y + radius) >= bounds.height) {
-      snprintf(buf, 1024, "Collision with bottom");
-      Serial.println(buf);
-      snprintf(buf, 1024, "Ball: (%d,%d) -> (%d,%d), V = <%f, %f> -> <%f, %f>",
-               postion.x, postion.y, newPosition.x, newPosition.y,
-               velocity.x_comp, velocity.y_comp, velocity.x_comp,
-               -velocity.y_comp);
-      Serial.println(buf);
 
       // adjust for how out of bounds we are
       int overlap = bounds.height - (newPosition.y + radius);
@@ -227,7 +212,6 @@ struct Ball {
                newPosition.x, newPosition.y, newPosition.x,
                newPosition.y - overlap);
       newPosition.y -= overlap;
-      Serial.println(buf);
 
       // flip our y component
       this->velocity.y_comp = -1 * this->velocity.y_comp;
@@ -266,11 +250,7 @@ struct Ball {
     // check collision with left paddle
     if (p1_colidesX && p1_collidesY) {
 
-      Serial.println("Ball collides with left paddle!");
-
       float speed = this->velocity.magnitude();
-      snprintf(buf, 1024, "Ball Speed is %f", speed);
-      Serial.println(buf);
 
       // adjust our x position to not overlap with the paddle
       newPosition.x += p1_distX;
@@ -288,31 +268,13 @@ struct Ball {
       float dy = newPosition.y - player1Paddle.position.y;
       float dx = p1_distX;
 
-      snprintf(buf, 1024, "\t dy = %d - %d  -> dy = %f", newPosition.y,
-               player1Paddle.position.y, dy);
-      Serial.println(buf);
-      snprintf(buf, 1024, "\t dx = abs(%d - %d + %d) -> dx = %f", newPosition.x,
-               player1Paddle.position.x, player1Paddle.halfwidth, dx);
-      Serial.println(buf);
-
       float magnitude = sqrt(dx * dx + dy * dy);
 
       this->velocity.x_comp = dx * (speed / magnitude);
       this->velocity.y_comp = dy * (speed / magnitude);
 
-      snprintf(buf, 1024, "\t v_x = %f * (%f / %f) -> v_x = %f", dx, speed,
-               magnitude, velocity.x_comp);
-      Serial.println(buf);
-      snprintf(buf, 1024, "\t v_y = %f * (%f / %f) -> v_y = %f", dy, speed,
-               magnitude, velocity.y_comp);
-      Serial.println(buf);
-
     } else if (p2_collidesX && p2_collidesY) {
-      Serial.println("Ball collides with right paddle!");
-
       float speed = this->velocity.magnitude();
-      snprintf(buf, 1024, "Ball Speed is %f", speed);
-      Serial.println(buf);
 
       // adjust our x position to not overlap with the paddle
       newPosition.x -= p2_distX;
@@ -320,24 +282,10 @@ struct Ball {
       float dy = newPosition.y - player2Paddle.position.y;
       float dx = p2_distX;
 
-      snprintf(buf, 1024, "\t dy = %d - %d  -> dy = %f", newPosition.y,
-               player2Paddle.position.y, dy);
-      Serial.println(buf);
-      snprintf(buf, 1024, "\t dx = abs(%d - %d + %d) -> dx = %f", newPosition.x,
-               player2Paddle.position.x, player2Paddle.halfwidth, dx);
-      Serial.println(buf);
-
       float magnitude = sqrt(dx * dx + dy * dy);
 
       this->velocity.x_comp = -dx * (speed / magnitude);
       this->velocity.y_comp = dy * (speed / magnitude);
-
-      snprintf(buf, 1024, "\t v_x = -(%f * (%f / %f)) -> v_x = %f", dx, speed,
-               magnitude, velocity.x_comp);
-      Serial.println(buf);
-      snprintf(buf, 1024, "\t v_y = %f * (%f / %f) -> v_y = %f", dy, speed,
-               magnitude, velocity.y_comp);
-      Serial.println(buf);
     }
 
     this->postion = newPosition;
