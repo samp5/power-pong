@@ -1,3 +1,4 @@
+#include "utils/button.h"
 #include "utils/PowerUps.h"
 #include "utils/Packet.h"
 #include "utils/Client.h"
@@ -26,6 +27,7 @@ byte LED_PINS[5] = {
 ClientConnection client;
 PowerupStatus powerupStatus[5];
 int updatedCDStatus;
+Packet recievedPackets[16];
 
 
 
@@ -34,20 +36,39 @@ int updatedCDStatus;
 // -----------------------
 void invokeCD() {
   // get all packets recieved
-  Packet** packetsRecieved;
-  int packets = client.readPackets(packetsRecieved);
+  int packets = client.readPackets(recievedPackets);
+  if (packets > 0) {
+    Serial.print("Packets gotten: ");
+    Serial.println(packets);
+  }
 
   // for each packet recieved
   for (int i = 0; i < packets; ++i) {
     // take the packet
-    Packet* packet = packetsRecieved[i];
+    Packet* packet = &recievedPackets[i];
+    PacketType type = packet->getType();
+
+    Serial.print("Packet content: ");
+    Serial.println((byte)packet->data);
+
+    Serial.print("Parsing packet of type ");
+    Serial.println(type);
 
     // only process powerup activation packets
-    if (packet->getType() == PowerupActivatePacket) {
+    if (type == PowerupActivatePacket) {
       // for each powerup
       for (int i = 0; i < 5; ++i) {
+        int powerupBit = (packet->getData() >> i) & 0b1;
+        Serial.print("  Powerup of index ");
+        Serial.print(i);
+        Serial.print(" has value ");
+        Serial.println(powerupBit);
+
         // if the triggered but was set, set invoked to now
-        if ((packet->getData() >> i) & 0b1) {
+        if (powerupBit) {
+          Serial.print("  Powerup activated: ");
+          Serial.println(i);
+          powerupStatus[i].cdExpired = false;
           powerupStatus[i].lastInvoked = millis();
         }
       }
@@ -58,9 +79,12 @@ void invokeCD() {
 void sendCDPacket() {
   if (!client.isConnected()) return;
 
-  Packet p = Packet(PowerupCDPacket);
-  p.setData(updatedCDStatus);
-  client.sendPacket(&p);
+  Serial.print("Sending packet with value ");
+  Serial.println(updatedCDStatus);
+
+  // Packet p = Packet(PowerupCDPacket);
+  // p.setData(updatedCDStatus);
+  // client.sendPacket(&p);
   // CooldownsExpiredData data;
   // data.cooldownsExpired = updatedCDStatus;
   // Packet p = Packet(PowerupCDPacket).withData(&data).sendable();
@@ -74,9 +98,12 @@ void updateCooldowns() {
     int lastInvoked = powerupStatus[i].lastInvoked;
 
     // set cooldown expired status
-    int cdStatus = millis() >= (lastInvoked + cd);
-    if (cdStatus) {
-      updatedCDStatus | (1 << i);
+    bool cdStatus = millis() >= (lastInvoked + cd);
+    if (cdStatus && !powerupStatus[i].cdExpired) {
+      Serial.print("Powerup cooldown at index ");
+      Serial.print(i);
+      Serial.println(" just expired");
+      updatedCDStatus |= (1 << i);
     }
 
     // set the LED and struct to light based on status
@@ -109,24 +136,24 @@ void setup() {
 
     // then set up its cooldown duration.
     // exists in a switch case to allow for individual cd tweaking.
-    switch ((PowerUps)i) {
-      case BallSpeedUp:
+    switch (i) {
+      case 0: // BallSpeedUp:
         powerupStatus[i].cd = 5000;
         break;
 
-      case BallInvisible:
+      case 1: // BallInvisible:
         powerupStatus[i].cd = 5000;
         break;
 
-      case PaddleSpeedUp:
+      case 2: // PaddleSpeedUp:
         powerupStatus[i].cd = 5000;
         break;
 
-      case BallSize:
+      case 3: // BallSize:
         powerupStatus[i].cd = 5000;
         break;
 
-      case BonusPoints:
+      case 4: // BonusPoints:
         powerupStatus[i].cd = 5000;
         break;
     }
@@ -138,7 +165,7 @@ void setup() {
   updatedCDStatus = 0;
 
   IPAddress ip = getIPSerial();
-  client = ClientConnection(POWERUP_FB, ip);
+  client = ClientConnection(GAME_IN, ip);
 }
 
 void loop() {
