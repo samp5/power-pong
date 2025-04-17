@@ -15,7 +15,9 @@ public:
     Serial.println("Connecting to WiFi...");
     int status = WiFi.begin(SSID, PWD);
     while (status != WL_CONNECTED) {
+
       Serial.println("Unable to connect to wifi, trying again...");
+
       delay(3000); // wait 3s before trying again
       status = WiFi.begin(SSID, PWD);
     }
@@ -26,6 +28,7 @@ public:
 
     // notify server status
     Serial.print("Waiting for clients on host ");
+
     Serial.print(this->ipAddr);
     Serial.print(":");
     Serial.println(PORT);
@@ -42,12 +45,10 @@ public:
     while (this->connectedClients != wantedClients) {
       WiFiClient client = server.available();
       if (client) {
-        Serial.println("client is non null");
         while (client.connected()) {
-          Serial.println("client is connected");
           if (client.available()) {
             ClientID c = (ClientID) client.read();
-            Serial.println("read");
+            Serial.println("Read Client ID: ");
             Serial.println(c);
             
             switch (c) {
@@ -61,16 +62,13 @@ public:
                 Serial.println("Connected to Powerup Feedback");
                 break;
             }
-            Serial.println("Its all good now");
 
             connectedClients |= 1 << c;
             this->clients[c] = ClientConnection(client);
             break;
           }
         }
-      }else {
-      } 
-
+      }
     }
   }
 
@@ -86,19 +84,17 @@ public:
     this->clients[id].sendPacket(p);
   }
 
-  /**
-   * @param packetsRecieved a packet double pointer which will be given an array
-   *   of packets recieved. will contain a maximum of 48 packets
-   * @return the number of packets recieved.
-   */
-  int readPackets(Packet **packetsRecieved) {
-    int numPackets = 0;
+  // read packets from all clients into the array
+  // return the number of packets placed into that array
+  int readPackets(Packet *packetsRecieved) {
+    int packetsRead = 0;
     for (int i = 0; i < NUM_CLIENTS; ++i) {
-      numPackets += clients[i].readPackets(packetsRecieved + numPackets);
+      int numReadClient_i = client[i].readPackets(packetsRecieved + numPackets);
+      packetsRead += numReadClient_i;
     }
     Serial.print("Server::readPackets num packets is ");
     Serial.println(numPackets);
-    return numPackets;
+    return packetsRead;
   }
 
   private:

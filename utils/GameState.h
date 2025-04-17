@@ -36,6 +36,7 @@ struct Velocity {
   float x_comp;
   float y_comp;
   float magnitude() { return sqrt(x_comp * x_comp + y_comp * y_comp); }
+  void increase(double f) { x_comp += f / 2; y_comp += f / 2;}
 };
 
 enum Direction { Up, Down, None };

@@ -10,9 +10,9 @@
 // IDs for a game client to assume. there should only be one of each connecting
 // to the game server
 enum ClientID {
-  GAME_IN,
-  POWERUP_IN,
-  POWERUP_FB,
+  GAME_IN = 0,
+  POWERUP_IN = 1,
+  POWERUP_FB = 2,
 };
 
 /**

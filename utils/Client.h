@@ -21,8 +21,12 @@ public:
   ClientConnection(ClientID clientID, IPAddress ipaddr) {
     // connect to Wifi, with retries
     Serial.println("Connecting to WiFi...");
+
+    // get the status of the WiFi
     int status = WiFi.begin(SSID, PWD);
+
     while (status != WL_CONNECTED) {
+
       Serial.println("Unable to connect to wifi, trying again...");
       delay(3000); // wait 3s before trying again
       status = WiFi.begin(SSID, PWD);
@@ -35,6 +39,7 @@ public:
     }
 
     // feedback of connection
+    // write our idenfication to the server as our first packet.
     client.write((char)clientID);
     Serial.println("Connected to server");
   }
@@ -51,24 +56,27 @@ public:
    */
   void sendPacket(Packet *p) { this->client.print(p->data); }
 
-  /**
-   * @param packetsRecieved a packet double pointer which will be given an array
-   *   of packets recieved. will contain a maximum of 16 packets
-   * @return the number of packets recieved.
-   */
-  int readPackets(Packet **packetsRecieved) {
+  // fill packetsRecieved with the recieved packets
+  // return the number of packets recieved
+  int readPackets(Packet *packetsRecieved) {
     int packetsRead = 0;
+
+    // while we can read bytes
     while (this->client.available() > 0) {
-      Packet p;
+
+      // read a byte
       byte b = client.read();
+
       Serial.print("Client::readPackets read: ");
       Serial.println(b);
+      Packet* this_packet = packetsRecieved + packetsRead;
 
-      p.setData(b);
-      Serial.print("Packet now contains: ");
-      Serial.println(p.data);
+      // setting the raw value of the packet as the value we read
+      this_packet->setRaw(b);
 
-      *(packetsRecieved[packetsRead]) = p;
+      // DEBUG:
+      this_packet->print();
+
       ++packetsRead;
     }
 

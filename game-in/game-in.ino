@@ -121,24 +121,34 @@ void updateDisplay() {
 }
 
 void handlePackets(){
-    Packet** p = (Packet**) &packetArr;
-    int recieved = client.readPackets(p);
-  if (recieved > 0 ){
-    Serial.print("got nPackets: ");
-    Serial.println(recieved);
-  }
+    int recieved = client.readPackets(packetArr);
+    if (recieved > 0 ){
+      Serial.print("got nPackets: ");
+      Serial.println(recieved);
+    }
 
-  for (int i = 0; i < recieved; i++){
-    Packet p = packetArr[i];
-    Serial.print("raw: ");
-    Serial.print((int)p.data);
-    Serial.print("got: ");
-    Serial.print("type:");
-    Serial.print(p.getType());
-    Serial.print("data:");
-    Serial.println(p.getData());
+    for (int i = 0; i < recieved; i++){
+      packetArr[i].print();
 
-  }
+      int powerUps = packetArr[i].getData();
+      switch (packetArr[i].getType()){
+      case PacketType::PowerupActivatePacket: 
+        if (powerUps & PowerUps::BallSpeedUp){
+          STATE.ball.velocity.increase(10);
+        } else if (powerUps & PowerUps::PaddleSpeedUp){
+        } else if (powerUps & PowerUps::BallSize){
+          STATE.ball.radius += 10;
+        } else if (powerUps & PowerUps::BallInvisible){
+          STATE.ball.radius = 0;
+        } else if (powerUps & PowerUps::BonusPoints){
+          // we are dumb
+        }
+        break;
+      case PacketType::PowerupCDPacket: 
+        break;
+      }
+    }
+
 }
 
 void loop() {
