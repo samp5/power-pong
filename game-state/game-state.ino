@@ -82,8 +82,7 @@ void setup() {
 }
 
 void loop() {
-    Packet** ppp = (Packet**) &packetArr;
-    int packetsRecived = server.readPackets(ppp);
+    int packetsRecived = server.readPackets(packetArr);
     if (packetsRecived > 0){
       Serial.print("packets recieved:");
       Serial.println(packetsRecived);

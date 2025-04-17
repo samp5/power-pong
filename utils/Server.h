@@ -89,11 +89,11 @@ public:
   int readPackets(Packet *packetsRecieved) {
     int packetsRead = 0;
     for (int i = 0; i < NUM_CLIENTS; ++i) {
-      int numReadClient_i = client[i].readPackets(packetsRecieved + numPackets);
+      int numReadClient_i = clients[i].readPackets(packetsRecieved + packetsRead);
       packetsRead += numReadClient_i;
     }
     Serial.print("Server::readPackets num packets is ");
-    Serial.println(numPackets);
+    Serial.println(packetsRead);
     return packetsRead;
   }
 

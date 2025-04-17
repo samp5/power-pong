@@ -55,7 +55,7 @@ struct Packet {
   }
   void print(){
       Serial.print("Type is: " + packetTypeToString(this->getType()));
-      Serial.print("Raw Data is:" +  this->data  + " (" +   this->toBinaryString() + ")");
+      Serial.print(String("Raw Data is:") +  String((int)this->data)  + String(" (") +   this->toBinaryString() + String(")"));
   }
 
   String toBinaryString(){
