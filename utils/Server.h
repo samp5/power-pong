@@ -1,6 +1,6 @@
 #ifndef SERVER
 #define SERVER
-#define NUM_CLIENTS 3
+#define NUM_CLIENTS 1
 #include "Client.h"
 #include "Network.h"
 #include "Packet.h"
@@ -42,7 +42,7 @@ public:
    * connect to all clients
    */
   void getClients() {
-    while (this->connectedClients != wantedClients) {
+    while (this->connectedClients != 1) {
       WiFiClient client = server.available();
       if (client) {
         while (client.connected()) {
@@ -63,7 +63,7 @@ public:
                 break;
             }
 
-            connectedClients |= 1 << c;
+            connectedClients = 1;
             this->clients[c] = ClientConnection(client);
             break;
           }
@@ -92,8 +92,10 @@ public:
       int numReadClient_i = clients[i].readPackets(packetsRecieved + packetsRead);
       packetsRead += numReadClient_i;
     }
-    Serial.print("Server::readPackets num packets is ");
-    Serial.println(packetsRead);
+    if (packetsRead > 0){
+      Serial.print("Server::readPackets num packets is ");
+      Serial.println(packetsRead);
+    }
     return packetsRead;
   }
 

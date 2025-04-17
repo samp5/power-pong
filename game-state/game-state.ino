@@ -88,12 +88,7 @@ void loop() {
       Serial.println(packetsRecived);
     }
     for (int i = 0; i < packetsRecived; i++) {
-        Serial.print((int)(packetArr[i].data));
-        Serial.print(" or 0b");
-        for (int j = 7; j >=0; j--){
-          Serial.print((int)((packetArr[i].data & (0b1 << j)) & 1));
-        }
-        Serial.println();
+        Serial.println(packetArr[i].toBinaryString());
         managePacket(&packetArr[i]);
     }
 }

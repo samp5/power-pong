@@ -54,7 +54,7 @@ public:
   /**
    * send the given packet to the server
    */
-  void sendPacket(Packet *p) { this->client.print(p->data); }
+  void sendPacket(Packet *p) { this->client.write(p->data); }
 
   // fill packetsRecieved with the recieved packets
   // return the number of packets recieved
