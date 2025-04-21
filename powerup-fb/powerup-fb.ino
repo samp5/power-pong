@@ -20,7 +20,11 @@ typedef struct {
 // -----------------------
 // pins
 byte LED_PINS[5] = {
-  12, 11, 10, 9, 8
+  12, // Photores | Ball Invis
+  11, // Motor | Paddle Speed
+  10, // Distance | Ball Size
+  9,  // Numpad | Points
+  8   // 
 };
 
 // runtime variables
@@ -82,13 +86,9 @@ void sendCDPacket() {
   Serial.print("Sending packet with value ");
   Serial.println(updatedCDStatus);
 
-  // Packet p = Packet(PowerupCDPacket);
-  // p.setData(updatedCDStatus);
-  // client.sendPacket(&p);
-  // CooldownsExpiredData data;
-  // data.cooldownsExpired = updatedCDStatus;
-  // Packet p = Packet(PowerupCDPacket).withData(&data).sendable();
-  // client.sendPacket(&p);
+  Packet p = Packet(PowerupCDPacket);
+  p.setData(updatedCDStatus);
+  client.sendPacket(&p);
 }
 
 void updateCooldowns() {
@@ -138,23 +138,23 @@ void setup() {
     // exists in a switch case to allow for individual cd tweaking.
     switch (i) {
       case 0: // BallSpeedUp:
-        powerupStatus[i].cd = 5000;
+        powerupStatus[i].cd = 30000;
         break;
 
       case 1: // BallInvisible:
-        powerupStatus[i].cd = 5000;
+        powerupStatus[i].cd = 30000;
         break;
 
       case 2: // PaddleSpeedUp:
-        powerupStatus[i].cd = 5000;
+        powerupStatus[i].cd = 30000;
         break;
 
       case 3: // BallSize:
-        powerupStatus[i].cd = 5000;
+        powerupStatus[i].cd = 30000;
         break;
 
       case 4: // BonusPoints:
-        powerupStatus[i].cd = 5000;
+        powerupStatus[i].cd = 30000;
         break;
     }
 
@@ -165,7 +165,7 @@ void setup() {
   updatedCDStatus = 0;
 
   IPAddress ip = getIPSerial();
-  client = ClientConnection(GAME_IN, ip);
+  client = ClientConnection(POWERUP_FB, ip);
 }
 
 void loop() {
