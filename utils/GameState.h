@@ -37,6 +37,7 @@ struct Velocity {
   float y_comp;
   float magnitude() { return sqrt(x_comp * x_comp + y_comp * y_comp); }
   void increase(double f) { x_comp += f / 2; y_comp += f / 2;}
+  void decrease(double f) { x_comp -= f / 2; y_comp -= f / 2;}
 };
 
 enum Direction { Up, Down, None };
@@ -81,7 +82,7 @@ struct Paddle {
   Position position;               // represents the center of the paddle
   static const int halfheight = 8; // in pixels
   static const int halfwidth = 1;  // in pixels
-  static const int paddlePixelPerMove = 2;
+  int paddlePixelPerMove = 2;
 
   Paddle() : position({0, 0}) {};
   bool inBounds(DisplayBounds bounds, Position newPosition) {
@@ -143,12 +144,19 @@ struct Ball {
   const int INITIAL_SPEED = BALL_START_SPEED;
   const int INITIAL_V_X = 5;
   const int INITIAL_V_Y = 5;
+  boolean visible = true;
   int radius;
   Velocity velocity;
   Position postion;
 
   Ball(Position p) : postion(p), radius(START_BALL_RADIUS) {
     setInitialVelocity();
+  }
+  void setVisibility(boolean isVisible){
+    visible = isVisible;
+  }
+  boolean isVisible(){
+    return visible;
   }
   void setInitialVelocity() {
     float initial_x =

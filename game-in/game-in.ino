@@ -14,6 +14,45 @@ GameState STATE({ SCREEN_WIDTH, SCREEN_HEIGHT });
 ClientConnection client;
 Packet packetArr[16];
 
+struct PowerupCoolDownStatus {
+  int active = 0;
+  unsigned long end;
+  PowerUps powerup;
+};
+
+PowerupCoolDownStatus CD_status[5];
+
+PowerupCoolDownStatus* getStatus(PowerUps powerup){
+  switch (powerup){
+    case BallSpeedUp:
+      return CD_status;
+    case BallInvisible:
+      return CD_status + 1;
+    case PaddleSpeedUp:
+      return CD_status + 2;
+    case BallSize: 
+      return CD_status + 3 ;
+    case BonusPoints:
+      return CD_status + 4 ;
+  }
+}
+
+
+unsigned long getCooldownLength(PowerUps powerup){
+  switch (powerup){
+    case BallSpeedUp:
+      return 2000;
+    case BallInvisible:
+        return 1000;
+    case PaddleSpeedUp:
+        return 5000;
+    case BallSize: 
+        return 3000;
+    case BonusPoints:
+      return 0;
+  }
+}
+
 void initState();
 
 void drawStartScreen(String intro) {
@@ -62,27 +101,25 @@ void setup() {
   IPAddress addr = getIPSerial();
   client = ClientConnection(GAME_IN, addr);
 
-  // server.initialize();
-  // Serial.print("Server status: ");
-  // Serial.print(WiFi.status());
-  // Serial.print("\n");
-  // Serial.println(server.getIP());
 
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     Serial.println(F("SSD1306 allocation failed"));
     for (;;);  // Don't proceed, loop forever
   }
-  // display.display();
-  // delay(1000);  // Pause for 2 seconds
 
   STATE.update(millis());
-  // display.display();
 
   drawStartScreen("POWER PONG!");
 }
 
 void initState() {
   STATE.powerUpStat = 0;
+  CD_status[0].powerup = BallSpeedUp;
+  CD_status[1].powerup = BallInvisible;
+  CD_status[2].powerup = PaddleSpeedUp;
+  CD_status[3].powerup = BallSize;
+  CD_status[4].powerup = BonusPoints;
+
 }
 
 void drawPaddle(const Paddle& p) {
@@ -91,7 +128,9 @@ void drawPaddle(const Paddle& p) {
 }
 
 void drawBall(const Ball& b) {
-  display.drawCircle(b.postion.x, b.postion.y, b.radius, WHITE);
+  if (STATE.ball.isVisible()){
+    display.drawCircle(b.postion.x, b.postion.y, b.radius, WHITE);
+  }
 }
 
 void drawScoreBoard(int player1Score, int player2Score) {
@@ -106,17 +145,12 @@ void drawScoreBoard(int player1Score, int player2Score) {
   display.println(secondLine);
 }
 
-void drawPowerUpUpdates(PowerUpStatus newStatus) {
-  // TODO:
-}
-
 void updateDisplay() {
   display.clearDisplay();
   drawPaddle(STATE.player1.getPaddle());
   drawPaddle(STATE.player2.getPaddle());
   drawBall(STATE.ball);
   drawScoreBoard(STATE.player1.score, STATE.player2.score);
-  drawPowerUpUpdates(STATE.powerUpStat);
   display.display();
 }
 
@@ -130,44 +164,77 @@ void handlePackets(){
     for (int i = 0; i < recieved; i++){
       packetArr[i].print();
 
+      unsigned long time = millis();
+      PowerupCoolDownStatus* stat;
       int powerUps = packetArr[i].getData();
       switch (packetArr[i].getType()){
       case PacketType::PowerupActivatePacket: 
         if (powerUps & PowerUps::BallSpeedUp){
-          STATE.ball.velocity.increase(10);
+          STATE.ball.velocity.increase(20);
+          stat = getStatus(PowerUps::BallSpeedUp);
+          stat->end = time + getCooldownLength(PowerUps::BallSpeedUp);
+          stat->active = 1;
         } else if (powerUps & PowerUps::PaddleSpeedUp){
+          STATE.player1.paddle.paddlePixelPerMove += 10;
+          stat = getStatus(PowerUps::PaddleSpeedUp);
+          stat->end = time + getCooldownLength(PowerUps::PaddleSpeedUp);
+          stat->active = 1;
         } else if (powerUps & PowerUps::BallSize){
-          STATE.ball.radius += 10;
+          stat = getStatus(PowerUps::BallSize);
+          stat->end = time + getCooldownLength(PowerUps::BallSize);
+          stat->active = 1;
+          STATE.ball.radius = 4;
         } else if (powerUps & PowerUps::BallInvisible){
-          STATE.ball.radius = 0;
+          stat = getStatus(PowerUps::BallInvisible);
+          stat->end = time + getCooldownLength(PowerUps::BallInvisible);
+          stat->active = 1;
+          STATE.ball.setVisibility(false);
         } else if (powerUps & PowerUps::BonusPoints){
-          // we are dumb
+          if (powerUps & (0b1<< 6)){
+            STATE.player2.increaseScore();
+          } else {
+            STATE.player1.increaseScore();
+          }
         }
         break;
-      case PacketType::PowerupCDPacket: 
-        break;
-      }
     }
 
+  }
+}
+
+void updatePowerups(unsigned long time){
+  for (int i = 0; i < 5; i++){
+    if (CD_status[i].active && time > CD_status[i].end){
+      switch (CD_status[i].powerup){
+        case BallSpeedUp:
+          CD_status[i].active = 0;
+          STATE.ball.velocity.decrease(20);
+          break;
+        case BallInvisible:
+          CD_status[i].active = 0;
+          STATE.ball.setVisibility(true);
+          break;
+        case PaddleSpeedUp:
+          CD_status[i].active = 0;
+          STATE.player1.paddle.paddlePixelPerMove -= 10;
+          break;
+        case BallSize: 
+          CD_status[i].active = 0;
+          STATE.ball.radius = 2;
+          break;
+        case BonusPoints:
+          CD_status[i].active = 0;
+          break;
+      }
+    }
+  }
 }
 
 void loop() {
   handlePackets();
+  updatePowerups(millis());
 
   if (STATE.update(millis())) {
     updateDisplay();
   }
-
-  // WiFiClient client = server.clients[0];
-  // if (client && client.connected() && client.available()) {
-  // client.println("I could be sending you a packet right now");
-  // Serial.println("Building packet");
-  // CooldownsTriggeredData d;
-  // d.packetsTriggered = 1;
-  // Packet p = Packet(PowerupActivatePacket).withData(&d).sendable();
-  // Serial.println("Sending packet");
-  // server.sendPacket(,&p);
-  // Serial.println("Packet sent");
-  // client.stop();
-  // }
 }

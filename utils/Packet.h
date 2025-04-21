@@ -1,6 +1,7 @@
 #ifndef PACKET_H
 #define PACKET_H
 
+#include "PowerUps.h"
 enum PacketType {
   PowerupCDPacket,
   PowerupActivatePacket,
@@ -55,7 +56,21 @@ struct Packet {
   }
   void print(){
       Serial.print("Type is: " + packetTypeToString(this->getType()));
-      Serial.print(String("Raw Data is:") +  String((int)this->data)  + String(" (") +   this->toBinaryString() + String(")"));
+      Serial.print(String(" Raw Data is:") +  String((int)this->data)  + String(" (") +   this->toBinaryString() + String(")") + " Powerup is ");
+      Serial.println(powerUpAsString());
+  }
+  String powerUpAsString(){
+        if (getData() & PowerUps::BallSpeedUp){
+          return String("BallSpeedUp");
+        } else if (getData() & PowerUps::PaddleSpeedUp){
+          return String("PaddleSpeedUp");
+        } else if (getData() & PowerUps::BallSize){
+          return String("BallSize");
+        } else if (getData() & PowerUps::BallInvisible){
+          return String("BallInvisible");
+        } else if (getData() & PowerUps::BonusPoints){
+          return String("BonusPoints");
+        }
   }
 
   String toBinaryString(){

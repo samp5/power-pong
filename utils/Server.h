@@ -1,6 +1,6 @@
 #ifndef SERVER
 #define SERVER
-#define NUM_CLIENTS 1
+#define NUM_CLIENTS 3
 #include "Client.h"
 #include "Network.h"
 #include "Packet.h"
@@ -42,7 +42,7 @@ public:
    * connect to all clients
    */
   void getClients() {
-    while (this->connectedClients != 1) {
+    while (this->connectedClients != 3) {
       WiFiClient client = server.available();
       if (client) {
         while (client.connected()) {
@@ -63,7 +63,7 @@ public:
                 break;
             }
 
-            connectedClients = 1;
+            connectedClients += 1;
             this->clients[c] = ClientConnection(client);
             break;
           }
@@ -104,7 +104,6 @@ public:
   IPAddress ipAddr;
   ClientConnection clients[3];
 
-  static const int wantedClients = (1 << NUM_CLIENTS) - 1;
   int connectedClients;
 };
 

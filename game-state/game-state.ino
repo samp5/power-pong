@@ -31,7 +31,7 @@ void handlePowerupActivation(int activated) {
         Serial.print("checking powerup: ");
         Serial.println(i);
 
-      if (1 & ((activated >> i) & (cooldownsExpired >> 1))) {
+      if (1 & ((activated >> i) & (cooldownsExpired >> i))) {
 
         Serial.print(i);
         Serial.println(" should be activated! ");
