@@ -11,6 +11,7 @@ void sendCDTriggerPacket(int powerUpType){
 
   Packet p = Packet(PowerupActivatePacket);
   p.setData(powerUpType);
+  p.print();
   client.sendPacket(&p);
 }
 
@@ -23,6 +24,7 @@ class Joystick{
     int UP_THRESHOLD = 400;
     int DOWN_THRESHOLD = 800;
     int TIME_TO_COMPLETE = 1000;
+    int previousActivation = 0;
 
     int initial_verification = 0;
     int quadrants_verified = 0;
@@ -36,9 +38,10 @@ class Joystick{
       if (quadrants_verified == 1){
         initial_verification = millis();
       }else if (quadrants_verified == 4){
-        if (millis() - initial_verification <= TIME_TO_COMPLETE){
+        if (millis() - initial_verification <= TIME_TO_COMPLETE && millis() - previousActivation >= 1000){
           Serial.println("Joystick PowerUp activated!");
-          sendCDTriggerPacket(0b00001);
+          sendCDTriggerPacket(BallSpeedUp);
+          previousActivation = millis();
         }
         quadrants_verified = 0;
         bool temp[4] = {false, false, false, false};
@@ -90,10 +93,11 @@ class Joystick{
 class Motor{
   private:
     int DELAY_TIME = 50;
-    int IDLE_VALUE = 357;
-    int SPIN_INTENSITY = 6;
+    int IDLE_VALUE = 359;
+    int SPIN_INTENSITY = 9;
 
     int prev_time = 0;
+    int previousActivation = 0;
 
   public:
 
@@ -111,8 +115,11 @@ class Motor{
         // Gotta check this way because when the motor is idle
         // the reading may fluctuate by a few points every once in a while
         if (reading < IDLE_VALUE - SPIN_INTENSITY || reading > IDLE_VALUE + SPIN_INTENSITY){
-          Serial.println("Motor PowerUp Activated!");
-          sendCDTriggerPacket(0b00100);
+          if (millis() - previousActivation >= 1000){
+            Serial.println("Motor PowerUp Activated!");
+            sendCDTriggerPacket(PaddleSpeedUp);
+            previousActivation = millis();
+          }
         }
       }
     }
@@ -124,6 +131,7 @@ class UltraSonicSensor{
     int DELAY_TIME = 100;
     int prev_time = 0;
     float duration, distance;
+    int previousActivation = 0;
 
   public:
 
@@ -148,9 +156,10 @@ class UltraSonicSensor{
 
         duration = pulseIn(echoPin, HIGH);
         distance = (duration * .0343) / 2;
-        if (distance <= DISTANCE_TO_ACTIVATE){
+        if (distance <= DISTANCE_TO_ACTIVATE && millis() - previousActivation >= 1000){
           Serial.println("UltraSonicSensor PowerUp activated!");
-          sendCDTriggerPacket(0b01000);
+          sendCDTriggerPacket(BallSize);
+          previousActivation = millis();
         }
       }
     }
@@ -161,6 +170,7 @@ class Photoresistor{
     int LIGHT_THRESHOLD = 900; // we can adjust this to whatever
     int DELAY_TIME = 1000;
     int prev_time = 0;
+    int previousActivation = 0;
 
   public:
     
@@ -174,15 +184,15 @@ class Photoresistor{
       if (millis() - prev_time >= DELAY_TIME){
         prev_time = millis();
         int reading = analogRead(pin);
-        if (reading >= LIGHT_THRESHOLD){
+        if (reading >= LIGHT_THRESHOLD && millis() - previousActivation >= 1000){
           Serial.println("Photoresistor PowerUp activated!");
-          sendCDTriggerPacket(0b00010);
+          sendCDTriggerPacket(BallInvisible);
+          previousActivation = millis();
         }
       }
     }
 };
 
-// is this dumb? Yes, very much so but it probably works
 class NumPad{
   private:
     int result = 0;
@@ -197,13 +207,14 @@ class NumPad{
   
     NumPad(){
       // we are randomizing with empty analog pin noise
-      randomSeed(analogRead(A5));
       generateEquation();
     }
 
     void printEquation(){
       char equation[20];
-      sprintf(equation, "%d + %d = %s", sum[0], sum[1], (result == 0) ? "?" : std::to_string(result));
+      char temp[10];
+      (result == 0) ? snprintf(temp, 10, "?") : snprintf(temp, 10, "%d", result);
+      sprintf(equation, "%d + %d = %s", sum[0], sum[1], temp);
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print(equation);
@@ -212,7 +223,21 @@ class NumPad{
     void checkKey(char customKey){
       switch (customKey) {
         case 'A':
+          if (result == sum[0] + sum[1]){
+            Serial.println("NumPad PowerUp activated!");
+            sendCDTriggerPacket(BonusPoints);
+            result = 0;
+            generateEquation();
+            printEquation();
+          }
         case 'B':
+          if (result == sum[0] + sum[1]){
+            Serial.println("NumPad PowerUp activated!");
+            sendCDTriggerPacket(32 | BonusPoints);
+            result = 0;
+            generateEquation();
+            printEquation();
+          }
         case 'C':
         case 'D':
         case '#':
@@ -225,13 +250,7 @@ class NumPad{
           result = result * 10 + (customKey - '0');
       }
       printEquation();
-      if (result == sum[0] + sum[1]){
-        Serial.println("NumPad PowerUp activated!");
-        sendCDTriggerPacket(0b10000);
-        result = 0;
-        generateEquation();
-        printEquation();
-      }
+      
     }
 };
 
@@ -263,6 +282,7 @@ Adafruit_Keypad myKeypad = Adafruit_Keypad(makeKeymap(keys), rowPins, colPins, R
 void setup() {
   Serial.begin(9600);
   Serial.println("Beggining serial power-in!");
+  randomSeed(analogRead(A5));
   lcd.init();
   lcd.clear();
   lcd.backlight();
