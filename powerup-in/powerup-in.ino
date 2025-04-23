@@ -233,7 +233,7 @@ class NumPad{
         case 'B':
           if (result == sum[0] + sum[1]){
             Serial.println("NumPad PowerUp activated!");
-            sendCDTriggerPacket(32 | BonusPoints);
+            sendCDTriggerPacket(32 + BonusPoints);
             result = 0;
             generateEquation();
             printEquation();
