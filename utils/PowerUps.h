@@ -1,6 +1,5 @@
 #ifndef POWER_UPS_H
 #define POWER_UPS_H
-#include "Packet.h"
 
 typedef int PowerUpStatus;
 /**
@@ -25,11 +24,11 @@ typedef int PowerUpStatus;
  *
  */
 enum PowerUps {
-  BallSpeedUp   = 0, // Joystick
-  BallInvisible = 1, // Photores
-  PaddleSpeedUp = 2, // Motor
-  BallSize      = 4, // Distance Sensor
-  BonusPoints   = 8, // Num Pad
+  BallSpeedUp   = 1,  // Joystick
+  BallInvisible = 2,  // Photores
+  PaddleSpeedUp = 4,  // Motor
+  BallSize      = 8,  // Distance Sensor
+  BonusPoints   = 16, // Num Pad
 };
 
 /**

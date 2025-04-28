@@ -20,11 +20,11 @@ typedef struct {
 // -----------------------
 // pins
 byte LED_PINS[5] = {
-  12, // Photores | Ball Invis
-  11, // Motor | Paddle Speed
-  10, // Distance | Ball Size
-  9,  // Numpad | Points
-  8   // 
+  12, // Stick | Ball Speed
+  11, // Photores | Ball Invis
+  10, // Motor | Paddle Speed
+  9,  // Distance | Ball Size
+  8   // Numpad | Points
 };
 
 // runtime variables
@@ -138,23 +138,23 @@ void setup() {
     // exists in a switch case to allow for individual cd tweaking.
     switch (i) {
       case 0: // BallSpeedUp:
-        powerupStatus[i].cd = 30000;
+        powerupStatus[i].cd = 15000;
         break;
 
       case 1: // BallInvisible:
-        powerupStatus[i].cd = 30000;
+        powerupStatus[i].cd = 15000;
         break;
 
       case 2: // PaddleSpeedUp:
-        powerupStatus[i].cd = 30000;
+        powerupStatus[i].cd = 10000;
         break;
 
       case 3: // BallSize:
-        powerupStatus[i].cd = 30000;
+        powerupStatus[i].cd = 10000;
         break;
 
       case 4: // BonusPoints:
-        powerupStatus[i].cd = 30000;
+        powerupStatus[i].cd = 3000;
         break;
     }
 
